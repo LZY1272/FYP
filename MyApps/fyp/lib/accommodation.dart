@@ -17,6 +17,48 @@ class _AccommodationsPageState extends State<accommodationsPage> {
   int selectedBeds = 1;
   int selectedGuests = 1;
   bool isLoading = false;
+  List<String> suggestions = [];
+  OverlayEntry? overlayEntry;
+  final LayerLink _layerLink = LayerLink();
+  bool isLoadingSuggestions = false;
+
+  // 🔹 Fetch Destination Suggestions from API
+  Future<void> fetchDestinationSuggestions(String query) async {
+    if (query.isEmpty) return;
+
+    print("🔍 Fetching destinations for query: $query");
+
+    setState(() {
+      isLoadingSuggestions = true;
+    });
+
+    final String apiUrl =
+        "https://booking-com.p.rapidapi.com/v1/hotels/locations?name=$query&locale=en-gb";
+    
+    try {
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          "X-RapidAPI-Key": "da6baaaa31msh2a7ee36c4be592fp177311jsnfe3b9cc43c04",  // 🔹 Replace with your API key
+          "X-RapidAPI-Host": "booking-com.p.rapidapi.com"
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        setState(() {
+          suggestions = data
+              .map<String>((item) => item["name"].toString()) // Extract city names
+              .toList();
+          isLoading = false;
+        });
+      } else {
+        print("❌ API Error: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("🚨 Exception: $e");
+    }
+  }
 
   // 🔹 Fetch hotels from the backend
   Future<List<Map<String, dynamic>>> fetchHotels(String destination) async {
@@ -125,15 +167,41 @@ class _AccommodationsPageState extends State<accommodationsPage> {
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 🔹 Destination Input
-            TextField(
-              controller: destinationController,
-              decoration: InputDecoration(
-                labelText: "Destination",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+            CompositedTransformTarget(
+              link: _layerLink,
+              child: Column(
+                children: [
+                TextField(
+                controller: destinationController,
+                decoration: InputDecoration(
+                  labelText: "Destination",
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: fetchDestinationSuggestions,
               ),
-            ),
+              // 🔹 Show Suggestions Dropdown
+                  if (suggestions.isNotEmpty)
+                    Container(
+                      padding: EdgeInsets.all(8.0),
+                      color: Colors.white,
+                      child: Column(
+                        children: suggestions.map((suggestion) {
+                          return ListTile(
+                            title: Text(suggestion),
+                            onTap: () {
+                              destinationController.text = suggestion;
+                              setState(() {
+                                suggestions = [];
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                ],
+              ),
+            ), 
             SizedBox(height: 12),
 
             // 🔹 Date Picker
