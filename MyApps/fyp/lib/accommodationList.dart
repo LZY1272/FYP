@@ -127,7 +127,7 @@ class _AccommodationListState extends State<accommodationList> {
                                     stars: hotel["stars"] is int ? hotel["stars"] : int.tryParse(hotel["stars"].toString()) ?? 0, 
                                     address: hotel["address"],
                                     contact: hotel["contact"],
-                                    price: hotel["price"] is int ? hotel["price"] : int.tryParse(hotel["price"].toString()) ?? 0, 
+                                    price: double.tryParse(hotel["price"].toString()) ?? 0.0, 
                                     selectedDateRange: widget.selectedDateRange,
                                     selectedBeds: widget.selectedBeds is int ? widget.selectedBeds : int.tryParse(widget.selectedBeds.toString()) ?? 1,
                                     selectedGuests: widget.selectedGuests is int ? widget.selectedGuests : int.tryParse(widget.selectedGuests.toString()) ?? 1,

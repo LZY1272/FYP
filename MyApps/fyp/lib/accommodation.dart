@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart'; // For date formatting
 import 'accommodationList.dart';
+import 'topHotels.dart'; // ✅ Import Top Hotels section
+import 'allTopHotels.dart'; // ✅ Import See All Hotels page
 
 class accommodationsPage extends StatefulWidget {
   @override
@@ -311,6 +313,9 @@ class _AccommodationsPageState extends State<accommodationsPage> {
                     onPressed: findHotels,
                     child: Text("Find Hotels", style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
+                  // ✅ TOP HOTELS SECTION BELOW
+              SizedBox(height: 20),
+              topHotels(destination: destinationController.text), // ✅ Display Top Hotels section here
           ],
         ),
       ),

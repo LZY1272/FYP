@@ -8,7 +8,7 @@ class accommodationDetails extends StatelessWidget {
   final int stars;
   final String address;
   final String contact;
-  final int price;
+  final double price;
   final String selectedDateRange;
   final int selectedBeds;
   final int selectedGuests;
