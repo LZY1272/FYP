@@ -79,7 +79,7 @@ class _AccommodationsPageState extends State<accommodationsPage> {
 
     try {
       print("🔍 Fetching hotels from backend: $apiUrl");
-      final response = await http.get(Uri.parse(apiUrl)).timeout(Duration(seconds: 5));
+      final response = await http.get(Uri.parse(apiUrl)).timeout(Duration(seconds: 20));
 
       print("📩 Response: ${response.body}"); // Debugging log
 

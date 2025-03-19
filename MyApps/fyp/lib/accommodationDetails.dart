@@ -161,7 +161,7 @@ class accommodationDetails extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RoutesPage(destination: name),
+                        builder: (context) => routesPage(destination: name),
                       ),
                     );
                   },
