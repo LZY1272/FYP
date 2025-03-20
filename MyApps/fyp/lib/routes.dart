@@ -143,7 +143,6 @@ class _RoutesPageState extends State<routesPage> {
                   MaterialPageRoute(
                     builder: (context) => recommendedRoutesPage(
                       startingPoint: _selectedStartingPoint,
-                      destination: widget.destination,
                       transportMode: _selectedTransportMode,
                     ),
                   ),

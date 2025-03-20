@@ -6,6 +6,7 @@ import 'package:intl/intl.dart'; // For date formatting
 import 'accommodationList.dart';
 import 'topHotels.dart'; // ✅ Import Top Hotels section
 import 'allTopHotels.dart'; // ✅ Import See All Hotels page
+import 'package:shared_preferences/shared_preferences.dart';
 
 class accommodationsPage extends StatefulWidget {
   @override
@@ -110,6 +111,11 @@ class _AccommodationsPageState extends State<accommodationsPage> {
       );
       return;
     }
+
+    // ✅ Store city destination in SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_destination', destination);
+    print("✔️ Destination saved: $destination");  // Debugging
 
     setState(() {
       isLoading = true;

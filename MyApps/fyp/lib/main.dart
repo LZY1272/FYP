@@ -6,6 +6,7 @@ import 'homePage.dart';
 import 'accommodation.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized(); 
   runApp(MyApp());
 }
 
