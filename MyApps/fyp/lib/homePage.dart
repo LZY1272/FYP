@@ -3,6 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class homePage extends StatefulWidget {
+  final String userId;
+
+  const homePage({Key? key, required this.userId}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -14,14 +18,18 @@ class _HomePageState extends State<homePage> {
   @override
   void initState() {
     super.initState();
+    print("Navigated to HomePage with userId: ${widget.userId}"); // Debug
+
     fetchTopExperiences();
     fetchTopDestinations();
   }
 
   Future<void> fetchTopExperiences() async {
-    final String apiKey = "5ae2e3f221c38a28845f05b61e71a6719cee59a2f24d1b01fe74b4ef";
+    final String apiKey =
+        "5ae2e3f221c38a28845f05b61e71a6719cee59a2f24d1b01fe74b4ef";
     final url = Uri.parse(
-        "https://api.opentripmap.com/0.1/en/places/radius?radius=10000&lon=2.3415407&lat=48.8719556&rate=3&limit=5&apikey=$apiKey");
+      "https://api.opentripmap.com/0.1/en/places/radius?radius=10000&lon=2.3415407&lat=48.8719556&rate=3&limit=5&apikey=$apiKey",
+    );
 
     try {
       final response = await http.get(url);
@@ -45,13 +53,17 @@ class _HomePageState extends State<homePage> {
   Future<void> fetchTopDestinations() async {
     final String apiKey = "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285";
     final url = Uri.parse(
-        "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?limit=5&sort=-population");
+      "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?limit=5&sort=-population",
+    );
 
     try {
-      final response = await http.get(url, headers: {
-        "X-RapidAPI-Key": apiKey,
-        "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com"
-      });
+      final response = await http.get(
+        url,
+        headers: {
+          "X-RapidAPI-Key": apiKey,
+          "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com",
+        },
+      );
 
       print("Destinations API Status Code: ${response.statusCode}");
       print("Destinations API Response: ${response.body}");
@@ -76,18 +88,24 @@ class _HomePageState extends State<homePage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.black),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+          builder:
+              (context) => IconButton(
+                icon: Icon(Icons.menu, color: Colors.black),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset('assets/Logo.png', height: 30),
             SizedBox(width: 8),
-            Text("TRAVELMIND",
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            Text(
+              "TRAVELMIND",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -105,13 +123,20 @@ class _HomePageState extends State<homePage> {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue),
-              child: Text("Menu", style: TextStyle(color: Colors.white, fontSize: 24)),
+              child: Text(
+                "Menu",
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
             ),
             _buildDrawerItem(context, "Accommodations", "/accommodations"),
             _buildDrawerItem(context, "Expense Summary", "/expenseSummary"),
             _buildDrawerItem(context, "Chatbot Rating", "/chatbotRating"),
             _buildDrawerItem(context, "Upcoming Bookings", "/upcomingBookings"),
-            _buildDrawerItem(context, "Booking Confirmation", "/bookingConfirmation"),
+            _buildDrawerItem(
+              context,
+              "Booking Confirmation",
+              "/bookingConfirmation",
+            ),
           ],
         ),
       ),
@@ -123,7 +148,9 @@ class _HomePageState extends State<homePage> {
               decoration: InputDecoration(
                 hintText: "Places to go, things to do, hotels...",
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
             ),
           ),
@@ -134,7 +161,10 @@ class _HomePageState extends State<homePage> {
                 children: [
                   _buildSectionTitle("Top experiences", context),
                   _buildExperienceList(topExperiences),
-                  _buildSectionTitle("Top destinations for your next holiday", context),
+                  _buildSectionTitle(
+                    "Top destinations for your next holiday",
+                    context,
+                  ),
                   _buildDestinationList(topDestinations),
                 ],
               ),
@@ -149,10 +179,14 @@ class _HomePageState extends State<homePage> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.pushNamed(context, '/home');
+              Navigator.pushNamed(context, '/home', arguments: widget.userId);
               break;
             case 1:
-              Navigator.pushNamed(context, '/itinerary');
+              Navigator.pushNamed(
+                context,
+                '/itinerary',
+                arguments: widget.userId,
+              );
               break;
             case 2:
               Navigator.pushNamed(context, '/chatbot');
@@ -187,11 +221,11 @@ class _HomePageState extends State<homePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          TextButton(
-            onPressed: () {},
-            child: Text("See all"),
+          Text(
+            title,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
+          TextButton(onPressed: () {}, child: Text("See all")),
         ],
       ),
     );
@@ -225,7 +259,11 @@ class _HomePageState extends State<homePage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
-                  "https://via.placeholder.com/150", height: 100, width: 150, fit: BoxFit.cover),
+                "https://via.placeholder.com/150",
+                height: 100,
+                width: 150,
+                fit: BoxFit.cover,
+              ),
             ),
             SizedBox(height: 5),
             Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -260,7 +298,11 @@ class _HomePageState extends State<homePage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
-                  "https://via.placeholder.com/150", height: 100, width: 150, fit: BoxFit.cover),
+                "https://via.placeholder.com/150",
+                height: 100,
+                width: 150,
+                fit: BoxFit.cover,
+              ),
             ),
             SizedBox(height: 5),
             Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
