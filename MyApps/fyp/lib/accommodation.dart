@@ -42,7 +42,7 @@ class _AccommodationsPageState extends State<accommodationsPage> {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
-          "X-RapidAPI-Key": "da6baaaa31msh2a7ee36c4be592fp177311jsnfe3b9cc43c04",  // 🔹 Replace with your API key
+          "X-RapidAPI-Key": "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285",  // 🔹 Replace with your API key
           "X-RapidAPI-Host": "booking-com.p.rapidapi.com"
         },
       );

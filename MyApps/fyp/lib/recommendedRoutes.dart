@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'viewRoute.dart'; 
+import 'viewRoute.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 
 class recommendedRoutesPage extends StatefulWidget {
   final String startingPoint;
@@ -18,8 +20,8 @@ class recommendedRoutesPage extends StatefulWidget {
 }
 
 class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
-  String? destination; // Destination from SharedPreferences
-  bool isDestinationLoaded = false; // Ensure destination is loaded before fetching routes
+  String? destination;
+  bool isDestinationLoaded = false;
 
   @override
   void initState() {
@@ -29,24 +31,23 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
 
   Future<void> _loadDestination() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedDestination = prefs.getString('selected_destination'); // ✅ Corrected key
+    String? savedDestination = prefs.getString('selected_destination');
 
     if (savedDestination != null && savedDestination.isNotEmpty) {
       print("✔️ Destination loaded: $savedDestination");
       setState(() {
         destination = savedDestination;
-        isDestinationLoaded = true; // ✅ Mark as loaded
+        isDestinationLoaded = true;
       });
     } else {
       print("❌ No destination found in SharedPreferences.");
     }
   }
 
-  // ✅ Ensure `_fetchRoutes()` only runs when destination is ready
   Future<List<Map<String, dynamic>>> _fetchRoutes() async {
     if (!isDestinationLoaded || destination == null) {
       print("⏳ Waiting for destination to load...");
-      await Future.delayed(Duration(seconds: 1)); // Give some time for loading
+      await Future.delayed(Duration(seconds: 1));
       return [];
     }
 
@@ -62,67 +63,37 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
       return [];
     }
 
-    final url =
-        'https://graphhopper.com/api/1/route?point=$startCoords&point=$destCoords&vehicle=${widget.transportMode}&key=$apiKey';
+    List<String> avoidTypes = ["", "motorway", "toll"];
+    List<Map<String, dynamic>> allRoutes = [];
 
-    final response = await http.get(Uri.parse(url));
+    for (String avoid in avoidTypes) {
+      final avoidParam = avoid.isNotEmpty ? "&avoid=$avoid" : "";
+      final url =
+          'https://graphhopper.com/api/1/route?point=$startCoords&point=$destCoords&vehicle=${widget.transportMode}&key=$apiKey$avoidParam';
 
-    print("📩 API Response: ${response.body}");
+      final response = await http.get(Uri.parse(url));
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data.containsKey('paths') && data['paths'].isNotEmpty) {
-        return List<Map<String, dynamic>>.from(data['paths']);
+      print("📩 API Response (Avoid: $avoid): ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data.containsKey('paths') && data['paths'].isNotEmpty) {
+          allRoutes.add(data['paths'][0]);
+        }
       } else {
-        print("⚠️ No routes found.");
-        return [];
+        print("❌ API Error (Avoid: $avoid): ${response.statusCode}");
       }
-    } else {
-      print("❌ API Error: ${response.statusCode}");
-      return [];
     }
+
+    return allRoutes;
   }
 
   Future<String?> _getCoordinates(String place) async {
     print("🔄 Resolving coordinates for: $place");
 
-    String formattedPlace = await _detectCityAndFormat(place);
-
-    // 🔹 Try Nominatim API first
+    String formattedPlace = "$place, Malaysia";
     String? coordinates = await _fetchFromNominatim(formattedPlace);
-    if (coordinates != null) return coordinates;
-
-    // 🔹 Try OpenCage API if Nominatim fails
-    coordinates = await _fetchFromOpenCage(formattedPlace);
-    if (coordinates != null) return coordinates;
-
-    print("❌ Failed to get coordinates for: $place");
-    return null;
-  }
-
-  Future<String> _detectCityAndFormat(String place) async {
-    final openCageApiKey = "20e9087a5faa400a99786f84b9ca3308";
-    final encodedPlace = Uri.encodeComponent(place);
-    final url = 'https://api.opencagedata.com/geocode/v1/json?q=$encodedPlace&key=$openCageApiKey';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['results'].isNotEmpty) {
-          final components = data['results'][0]['components'];
-          String city = components['city'] ?? components['town'] ?? components['state'] ?? '';
-          String country = components['country'] ?? '';
-          if (city.isNotEmpty && country.isNotEmpty) {
-            return "$place, $city, $country";
-          }
-        }
-      }
-    } catch (e) {
-      print("⚠️ Error detecting city: $e");
-    }
-
-    return "$place, Malaysia";
+    return coordinates;
   }
 
   Future<String?> _fetchFromNominatim(String place) async {
@@ -139,26 +110,6 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
       }
     } catch (e) {
       print("❌ Nominatim failed: $e");
-    }
-    return null;
-  }
-
-  Future<String?> _fetchFromOpenCage(String place) async {
-    final openCageApiKey = "20e9087a5faa400a99786f84b9ca3308";
-    final encodedPlace = Uri.encodeComponent(place);
-    final url = 'https://api.opencagedata.com/geocode/v1/json?q=$encodedPlace&key=$openCageApiKey';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['results'].isNotEmpty) {
-          final location = data['results'][0]['geometry'];
-          return "${location['lat']},${location['lng']}";
-        }
-      }
-    } catch (e) {
-      print("❌ OpenCage failed: $e");
     }
     return null;
   }
@@ -186,7 +137,7 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade300,
+                          color: index == 0 ? Colors.blue.shade500 : Colors.blue.shade300,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -196,11 +147,11 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "${(route['time'] / 60000).toStringAsFixed(1)} min (${(route['distance'] / 1000).toStringAsFixed(2)} km)",
+                                    "Route ${index + 1}: ${(route['time'] / 60000).toStringAsFixed(1)} min (${(route['distance'] / 1000).toStringAsFixed(2)} km)",
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                                   ),
-                                  const Text(
-                                    "Fastest route, usual traffic",
+                                  Text(
+                                    index == 0 ? "Fastest route" : "Alternative route",
                                     style: TextStyle(fontSize: 14, color: Colors.white),
                                   ),
                                 ],
@@ -208,13 +159,36 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => viewRoutePage(routePoints: route['points']),
-                                  ),
-                                );
-                              },
+                                  try {
+                                    print("🔍 Full Route Data: $route");
+
+                                    // Extract and decode the polyline
+                                    String encodedPolyline = route['points']; 
+                                    print("🔍 Decoding polyline: $encodedPolyline");
+
+                                    // ✅ Corrected: Use `PointLatLng`
+                                    PolylinePoints polylinePoints = PolylinePoints();
+                                    List<PointLatLng> decodedPoints = polylinePoints.decodePolyline(encodedPolyline);
+
+                                    // ✅ Convert to List<LatLng>
+                                    List<LatLng> routePoints = decodedPoints.map(
+                                      (point) => LatLng(point.latitude, point.longitude),
+                                    ).toList();
+
+                                    print("✅ Decoded Route Points: $routePoints");
+
+                                    // Navigate to `viewRoutePage` with decoded coordinates
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => viewRoutePage(routePoints: routePoints),
+                                      ),
+                                    );
+                                  } catch (e, stacktrace) {
+                                    print("🚨 ERROR: $e");
+                                    print("🔍 Stacktrace: $stacktrace");
+                                  }
+                                },
                               child: const Text("View"),
                             ),
                           ],

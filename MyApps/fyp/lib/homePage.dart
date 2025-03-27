@@ -1,6 +1,74 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class homePage extends StatelessWidget {
+class homePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<homePage> {
+  List<dynamic> topExperiences = [];
+  List<dynamic> topDestinations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTopExperiences();
+    fetchTopDestinations();
+  }
+
+  Future<void> fetchTopExperiences() async {
+    final String apiKey = "5ae2e3f221c38a28845f05b61e71a6719cee59a2f24d1b01fe74b4ef";
+    final url = Uri.parse(
+        "https://api.opentripmap.com/0.1/en/places/radius?radius=10000&lon=2.3415407&lat=48.8719556&rate=3&limit=5&apikey=$apiKey");
+
+    try {
+      final response = await http.get(url);
+
+      print("Experiences API Status Code: ${response.statusCode}");
+      print("Experiences API Response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          topExperiences = data["features"] ?? [];
+        });
+      } else {
+        print("Failed to load experiences: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching experiences: $e");
+    }
+  }
+
+  Future<void> fetchTopDestinations() async {
+    final String apiKey = "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285";
+    final url = Uri.parse(
+        "https://wft-geo-db.p.rapidapi.com/v1/geo/cities?limit=5&sort=-population");
+
+    try {
+      final response = await http.get(url, headers: {
+        "X-RapidAPI-Key": apiKey,
+        "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com"
+      });
+
+      print("Destinations API Status Code: ${response.statusCode}");
+      print("Destinations API Response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          topDestinations = data["data"] ?? [];
+        });
+      } else {
+        print("Failed to load destinations: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching destinations: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,12 +84,10 @@ class homePage extends StatelessWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/Logo.png', height: 30), // Your app logo
+            Image.asset('assets/Logo.png', height: 30),
             SizedBox(width: 8),
-            Text(
-              "TRAVELMIND",
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-            ),
+            Text("TRAVELMIND",
+                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
@@ -67,9 +133,9 @@ class homePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionTitle("Top experiences", context),
-                  _buildHorizontalList(_topExperiences()),
+                  _buildExperienceList(topExperiences),
                   _buildSectionTitle("Top destinations for your next holiday", context),
-                  _buildHorizontalList(_topDestinations()),
+                  _buildDestinationList(topDestinations),
                 ],
               ),
             ),
@@ -131,71 +197,76 @@ class homePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHorizontalList(List<Map<String, String>> items) {
+  Widget _buildExperienceList(List<dynamic> experiences) {
     return SizedBox(
       height: 200,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: items.length,
+        itemCount: experiences.length,
         itemBuilder: (context, index) {
-          return _buildExperienceCard(items[index]);
+          final experience = experiences[index]["properties"];
+          return _buildExperienceCard(
+            experience?["xid"],
+            experience?["name"] ?? "Unknown Place",
+          );
         },
       ),
     );
   }
 
-  Widget _buildExperienceCard(Map<String, String> data) {
-  return Padding(
-    padding: EdgeInsets.only(left: 16),
-    child: Container(
-      width: 150,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: data["image"] != null && data["image"]!.isNotEmpty
-                ? Image.asset(data["image"]!, height: 100, width: 150, fit: BoxFit.cover)
-                : Container(
-                    height: 100,
-                    width: 150,
-                    color: Colors.grey[300], // Placeholder if image is missing
-                    child: Icon(Icons.image_not_supported, color: Colors.grey[600]),
-                  ),
-          ),
-          SizedBox(height: 5),
-          Text(data["title"]!, style: TextStyle(fontWeight: FontWeight.bold)),
-        ],
+  Widget _buildExperienceCard(String? id, String title) {
+    return Padding(
+      padding: EdgeInsets.only(left: 16),
+      child: Container(
+        width: 150,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                  "https://via.placeholder.com/150", height: 100, width: 150, fit: BoxFit.cover),
+            ),
+            SizedBox(height: 5),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-  List<Map<String, String>> _topExperiences() {
-    return [
-      {
-        "image": "assets/train_market.png",
-        "title": "Half-Day Railway Market and Floating Market Tour in Thailand",
-        "price": "From RM 135 per adult",
-      },
-      {
-        "image": "assets/ocean_road.png",
-        "title": "Great Ocean Road Small-Group Ecotour from Melbourne",
-        "price": "From RM 416 per adult",
-      },
-    ];
+    );
   }
 
-  List<Map<String, String>> _topDestinations() {
-    return [
-      {
-        "image": "assets/bangkok.png",
-        "title": "Bangkok, Thailand",
-      },
-      {
-        "image": "assets/singapore.png",
-        "title": "Singapore, Singapore",
-      },
-    ];
+  Widget _buildDestinationList(List<dynamic> destinations) {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: destinations.length,
+        itemBuilder: (context, index) {
+          final destination = destinations[index];
+          return _buildDestinationCard(destination["city"]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildDestinationCard(String title) {
+    return Padding(
+      padding: EdgeInsets.only(left: 16),
+      child: Container(
+        width: 150,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                  "https://via.placeholder.com/150", height: 100, width: 150, fit: BoxFit.cover),
+            ),
+            SizedBox(height: 5),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
   }
 }
