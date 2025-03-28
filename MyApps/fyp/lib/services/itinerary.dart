@@ -1,6 +1,5 @@
 import '../services/search.dart'; // Import the search API functions
 import '../services/nearby.dart'; // Import the nearby search API functions
-import '../dbservices/mongo_service.dart';
 
 class ItineraryGenerator {
   static const int TIMESLOTS_PER_DAY = 6;
@@ -18,17 +17,17 @@ class ItineraryGenerator {
     String destination,
     int numberOfDays,
   ) async {
-    print("Fetching top tourist attractions for: $destination...");
+    print("📍 Fetching top tourist attractions for: $destination...");
 
     List<Map<String, dynamic>>? topAttractions =
         await SearchAPI.searchTopTouristAttractions(destination);
 
     if (topAttractions == null || topAttractions.isEmpty) {
-      print("No tourist attractions found.");
+      print("⚠️ No tourist attractions found.");
       return [];
     }
 
-    print("Top Attractions found!");
+    print("✅ Top Attractions found!");
 
     // Randomly select one attraction per day without duplicates
     topAttractions.shuffle();
@@ -42,16 +41,19 @@ class ItineraryGenerator {
       double lng = attraction["longitude"];
 
       print(
-        "\nFetching nearby food and fun places for: \${attraction['name']}...",
+        "\n🔍 Fetching nearby food and fun places for: ${attraction['name']}...",
       );
       List<Map<String, dynamic>>? nearbyRestaurants =
           await NearbyAPI.searchNearby(lat, lng, "restaurant");
       List<Map<String, dynamic>>? nearbyFunPlaces =
           await NearbyAPI.searchNearby(lat, lng, "tourist_attraction");
 
-      if ((nearbyRestaurants == null || nearbyRestaurants.isEmpty) ||
-          (nearbyFunPlaces == null || nearbyFunPlaces.isEmpty)) {
-        print("No sufficient nearby places found.");
+      // ✅ Ensure fallback options in case no places are found
+      if (nearbyRestaurants == null) nearbyRestaurants = [];
+      if (nearbyFunPlaces == null) nearbyFunPlaces = [];
+
+      if (nearbyRestaurants.isEmpty || nearbyFunPlaces.isEmpty) {
+        print("⚠️ Not enough nearby places found. Skipping day.");
         continue;
       }
 
@@ -96,28 +98,15 @@ class ItineraryGenerator {
       itinerary.add(dayPlan);
     }
 
-    print("\nFinal Itinerary:");
+    print("\n📆 Final Itinerary:");
     for (int day = 0; day < itinerary.length; day++) {
-      print("Day \${day + 1}:");
+      print("🗓 Day ${day + 1}:");
       for (int i = 0; i < itinerary[day].length; i++) {
         print(
-          "Timeslot \${i + 1}: \${itinerary[day][i]['name']} - Rating: \${itinerary[day][i]['rating']}",
+          "📌 Timeslot ${i + 1}: ${itinerary[day][i]['name']} - Rating: ${itinerary[day][i]['rating']}",
         );
       }
     }
-    print("📦 Saving itinerary to MongoDB...");
-
-    // Save itinerary to MongoDB
-    Map<String, dynamic> itineraryData = {
-      "_id": userId,
-      "destination": destination,
-      "numberOfDays": numberOfDays,
-      "itinerary": itinerary,
-      "timestamp": DateTime.now().toIso8601String(),
-    };
-
-    await MongoService.saveItinerary(itineraryData);
-    print("Itinerary saved to MongoDB!");
 
     return itinerary;
   }

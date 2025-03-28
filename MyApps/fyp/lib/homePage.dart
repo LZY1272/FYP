@@ -192,7 +192,11 @@ class _HomePageState extends State<homePage> {
               Navigator.pushNamed(context, '/chatbot');
               break;
             case 3:
-              Navigator.pushNamed(context, '/profile');
+              Navigator.pushNamed(
+                context,
+                '/profile',
+                arguments: widget.userId,
+              );
               break;
           }
         },

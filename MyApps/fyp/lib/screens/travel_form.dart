@@ -3,9 +3,10 @@ import 'itinerary_screen.dart'; // The screen to display the itinerary
 import '../services/itinerary.dart'; // The itinerary generation logic
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/config.dart';
 
 class TravelForm extends StatefulWidget {
-  final String userId; // Add userId parameter
+  final String userId;
 
   const TravelForm({Key? key, required this.userId}) : super(key: key);
 
@@ -17,7 +18,6 @@ class _TravelFormState extends State<TravelForm> {
   final TextEditingController _destinationController = TextEditingController();
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
-  late String userId;
 
   String? _travelType;
   final List<String> _activityPreferences = [];
@@ -38,11 +38,6 @@ class _TravelFormState extends State<TravelForm> {
     'Art',
     'Other',
   ];
-  @override
-  void initState() {
-    super.initState();
-    userId = widget.userId; // Assign userId
-  }
 
   Future<void> _selectDate(
     BuildContext context,
@@ -72,55 +67,82 @@ class _TravelFormState extends State<TravelForm> {
       return;
     }
 
-    // Parse start and end dates
     DateTime startDate = DateTime.parse(_startDateController.text);
     DateTime endDate = DateTime.parse(_endDateController.text);
-
-    // Calculate the number of days for the itinerary
     int numberOfDays = endDate.difference(startDate).inDays + 1;
-    print(
-      "Generate Itinerary button pressed with userId: $userId",
-    ); // Debugging
 
-    // Generate itinerary for multiple days
+    print("🚀 Generating itinerary for User: ${widget.userId}");
+
+    // ✅ Generate itinerary
     List<List<Map<String, dynamic>>> itinerary =
         await ItineraryGenerator.generateItinerary(
           widget.userId,
           _destinationController.text,
           numberOfDays,
         );
-    print("Itinerary generated: $itinerary"); // Check if data is generated
 
-    // Prepare request body
-    var requestBody = {
-      "userId": userId, // Include user ID
-      "destination": _destinationController.text,
-      "startDate": _startDateController.text,
-      "endDate": _endDateController.text,
-      "travelType": _travelType,
-      "itinerary": itinerary,
-    };
+    print("📦 Itinerary generated: $itinerary");
 
-    // Send to API
-    var response = await http.post(
-      Uri.parse(
-        "http://127.0.0.1:8000/api/itinerary",
-      ), // Replace with real API URL
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(requestBody),
-    );
+    if (itinerary.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate itinerary. Try again.')),
+      );
+      return;
+    }
 
-    var jsonResponse = jsonDecode(response.body);
-    if (jsonResponse['status']) {
-      // Navigate to Itinerary Screen
+    // ✅ Navigate to ItineraryScreen IMMEDIATELY
+    if (mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ItineraryScreen(itinerary: itinerary),
+          builder:
+              (context) =>
+                  ItineraryScreen(userId: widget.userId, itinerary: itinerary),
         ),
       );
-    } else {
-      print("Failed to save itinerary");
+      print("✅ Navigation to ItineraryScreen triggered!");
+    }
+
+    // ✅ Save itinerary in the background (does not block UI)
+    Map<String, dynamic> itineraryData = {
+      "userId": widget.userId,
+      "destination": _destinationController.text,
+      "startDate": _startDateController.text,
+      "endDate": _endDateController.text,
+      "numberOfDays": numberOfDays,
+      "travelType": _travelType,
+      "activityPreferences": _activityPreferences,
+      "interestCategories": _interestCategories,
+      "itinerary": itinerary,
+      "timestamp": DateTime.now().toIso8601String(),
+    };
+
+    _saveItineraryToNodeJS(itineraryData);
+  }
+
+  Future<void> _saveItineraryToNodeJS(
+    Map<String, dynamic> itineraryData,
+  ) async {
+    try {
+      print("📦 Sending itinerary to Node.js backend...");
+      print("📜 Request Body: ${jsonEncode(itineraryData)}");
+
+      final response = await http.post(
+        Uri.parse(saveItinerary), // Ensure this URL is correct
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(itineraryData),
+      );
+
+      print("🛜 Response Status: ${response.statusCode}");
+      print("📜 Response Body: ${response.body}");
+
+      if (response.statusCode == 201) {
+        print("✅ Itinerary successfully saved via Node.js!");
+      } else {
+        print("❌ Failed to save itinerary. Response: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error saving itinerary to Node.js: $e");
     }
   }
 

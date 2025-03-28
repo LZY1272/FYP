@@ -49,7 +49,9 @@ dependencies:
   mongo_dart: 0.10.3
   flutter_cache_manager: ^3.3.0
   jwt_decoder:
-  
+  sqflite: ^2.0.0+3    
+  path_provider: ^2.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -66,14 +68,13 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
+  assets:  
   - assets/hotel1.jpg
   - assets/hotel2.jpg
   - assets/Logo.png

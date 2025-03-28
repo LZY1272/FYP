@@ -6,6 +6,7 @@ import 'package:fyp/upcomingBookings.dart';
 import 'homePage.dart';
 import 'accommodation.dart';
 import '../screens/travel_form.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,10 @@ class MyApp extends StatelessWidget {
         '/itinerary': (context) {
           final userId = ModalRoute.of(context)!.settings.arguments as String;
           return TravelForm(userId: userId); // Pass userId here
+        },
+        '/profile': (context) {
+          final userId = ModalRoute.of(context)!.settings.arguments as String;
+          return ProfilePage(userId: userId);
         },
       },
     );
