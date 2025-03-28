@@ -1,4 +1,4 @@
-final url = 'http://192.168.1.12:3000/';
+final url = 'http://172.16.38.213:3000/';
 final registration = "${url}registration";
 final login = "${url}login";
 final addtodo = "${url}storeTodo";
