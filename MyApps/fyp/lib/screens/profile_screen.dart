@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:local_auth/local_auth.dart'; // Import for biometric authentication
 import 'saved_itinerary.dart'; // Import Itinerary screen
 
 class ProfilePage extends StatefulWidget {
@@ -16,6 +17,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String userName = "Loading...";
   String profilePic = "assets/profile_placeholder.png"; // Default image
   late Future<List<dynamic>> itineraries;
+  final LocalAuthentication _auth = LocalAuthentication(); // LocalAuth instance
 
   @override
   void initState() {
@@ -44,6 +46,28 @@ class _ProfilePageState extends State<ProfilePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('userId'); // Clear session
     Navigator.pushReplacementNamed(context, '/login'); // Redirect to login
+  }
+
+  Future<void> _authenticateAndNavigate() async {
+    final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+    if (canAuthenticateWithBiometrics) {
+      try {
+        final bool didAuthenticate = await _auth.authenticate(
+          localizedReason: 'Please authenticate to view Upcoming Bookings',
+          options: const AuthenticationOptions(biometricOnly: true),
+        );
+
+        if (didAuthenticate) {
+          // Navigate to Upcoming Bookings if authenticated
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => UpcomingBookingsScreen()),
+          );
+        }
+      } catch (e) {
+        print('Authentication error: $e');
+      }
+    }
   }
 
   @override
@@ -112,7 +136,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   );
                 }),
                 _buildProfileOption(Icons.bookmark, "Upcoming Bookings", () {
-                  // TODO: Navigate to Upcoming Bookings
+                  _authenticateAndNavigate(); // Authenticate before navigating
                 }),
                 _buildProfileOption(Icons.rate_review, "Reviews", () {
                   // TODO: Navigate to Reviews
@@ -161,6 +185,16 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class UpcomingBookingsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Upcoming Bookings')),
+      body: Center(child: Text('This is the Upcoming Bookings screen.')),
     );
   }
 }
