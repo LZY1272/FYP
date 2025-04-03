@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:fyp/yy_fyp/accommodationList.dart';
+import 'package:fyp/yy_fyp/bookingConfirmationList.dart';
 import 'package:fyp/yy_fyp/chatScreen.dart';
 import 'package:fyp/yy_fyp/chatbotRating.dart';
 import 'package:fyp/screens/login_register.dart';
-import 'package:fyp/yy_fyp/upcomingBookings.dart';
+import 'package:fyp/yy_fyp/upcomingBookingsList.dart';
 import 'yy_fyp/homePage.dart';
 import 'yy_fyp/accommodation.dart';
+import 'yy_fyp/salomonBottomBar.dart';
 import 'screens/travel_form.dart';
 import 'screens/profile_screen.dart';
 
@@ -21,28 +24,34 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login', // Set initial route to Home Page
       routes: {
         '/login': (context) => LoginPage(),
-        '/home': (context) {
-          final userId =
-              ModalRoute.of(context)?.settings.arguments as String? ??
-              'defaultUser';
-          return homePage(userId: userId);
+        '/salomonBottomBar': (context) {
+          // Safely get userId with a fallback value
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final userId = args != null ? args as String : "defaultUser";
+          return salomonBottomBar(userId: userId);
         },
         '/accommodations': (context) => accommodationsPage(),
         '/chatbotRating': (context) => chatbotRating(),
-        '/upcomingBookings': (context) => upcomingBookings(),
-        '/chatbot': (context) => chatScreen(),
+        '/upcomingBookings': (context) => UpcomingBookingsList(),
+        '/chatbot': (context) {
+          // Safely get userId with a fallback value
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final userId = args != null ? args as String : "defaultUser";
+          return chatScreen(userId: userId);
+        },
         '/itinerary': (context) {
-          final userId =
-              ModalRoute.of(context)?.settings.arguments as String? ??
-              'defaultUser';
+          // Safely get userId with a fallback value
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final userId = args != null ? args as String : "defaultUser";
           return TravelForm(userId: userId);
         },
         '/profile': (context) {
-          final userId =
-              ModalRoute.of(context)?.settings.arguments as String? ??
-              'defaultUser';
+          // Safely get userId with a fallback value
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final userId = args != null ? args as String : "defaultUser";
           return ProfilePage(userId: userId);
         },
+        '/bookingConfirmation': (context) => bookingConfirmationList(),
       },
     );
   }

@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class chatScreen extends StatefulWidget {
+  final String userId;
+
+  const chatScreen({Key? key, required this.userId}) : super(key: key);
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }

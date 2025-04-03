@@ -51,6 +51,9 @@ dependencies:
   sqflite: ^2.0.0+3    
   path_provider: ^2.0.2
   local_auth: ^2.2.0
+  cached_network_image: ^3.3.1
+  salomon_bottom_bar: ^3.3.2
+
   flutter_map_tile_caching: ^8.0.0
   path: ^1.8.3
   permission_handler: ^11.4.0
