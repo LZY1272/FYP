@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fyp/screens/currentUser.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'routes.dart';
 
 class accommodationDetails extends StatelessWidget {
@@ -14,7 +17,7 @@ class accommodationDetails extends StatelessWidget {
   final int selectedGuests;
 
   accommodationDetails({
-    required this.name,
+    required this.name, 
     required this.image,
     required this.stars,
     required this.address,
@@ -24,6 +27,43 @@ class accommodationDetails extends StatelessWidget {
     required this.selectedBeds,
     required this.selectedGuests,
   });
+
+  // 🔹 Backend API URL (Replace with your actual endpoint)
+  final String saveBookingUrl = "http://10.0.2.2:3000/bookings";
+
+  // 🔹 Function to save booking data to MongoDB
+  Future<void> _saveBookingToNodeJS(BuildContext context) async {
+    Map<String, dynamic> bookingData = {
+      "userId": Currentuser.getUserId(),
+      "hotelName": name,
+      "image": image,
+      "dateRange": selectedDateRange,
+      "guests": selectedGuests.toInt(),
+      "rooms": selectedBeds.toInt(),
+      "price": price.toDouble(),
+      "timestamp": DateTime.now().toIso8601String(),
+    };
+
+    print("Final Booking Data: ${jsonEncode(bookingData)}");
+
+    try {
+      final response = await http.post(
+        Uri.parse(saveBookingUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(bookingData),
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Booking Successful! Please confirm your booking in 'Booking Confirmation' page.")),
+        );
+      } else {
+        print("❌ Failed to save booking: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Error saving booking: $e");
+    }
+  }
 
   // 🔹 Function to open Booking.com link
   void _launchBookingSite() async {
@@ -42,16 +82,11 @@ class accommodationDetails extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Hotel Name
             Text(name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
 
-            // 🔹 Stars
-            Row(
-              children: List.generate(stars, (index) => Icon(Icons.star, color: Colors.amber, size: 18)),
-            ),
+            Row(children: List.generate(stars, (index) => Icon(Icons.star, color: Colors.amber, size: 18))),
             SizedBox(height: 8),
 
-            // 🔹 Address & Contact
             Row(
               children: [
                 Icon(Icons.location_on, color: Colors.blue),
@@ -60,6 +95,7 @@ class accommodationDetails extends StatelessWidget {
               ],
             ),
             SizedBox(height: 5),
+
             Row(
               children: [
                 Icon(Icons.phone, color: Colors.blue),
@@ -69,7 +105,6 @@ class accommodationDetails extends StatelessWidget {
             ),
             SizedBox(height: 10),
 
-            // 🔹 Hotel Image
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
@@ -84,11 +119,9 @@ class accommodationDetails extends StatelessWidget {
             ),
             SizedBox(height: 15),
 
-            // 🔹 Travel Details
             Text("View prices for your travel dates", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
 
-            // 🔹 Date Container
             Container(
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -106,7 +139,6 @@ class accommodationDetails extends StatelessWidget {
             ),
             SizedBox(height: 10),
 
-            // 🔹 Bed & Guest Count
             Row(
               children: [
                 Expanded(
@@ -148,11 +180,9 @@ class accommodationDetails extends StatelessWidget {
             ),
             SizedBox(height: 15),
 
-            // 🔹 Price
             Text("RM $price", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             SizedBox(height: 20),
 
-            // 🔹 Buttons (View Routes & View Deals)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -174,6 +204,19 @@ class accommodationDetails extends StatelessWidget {
                   child: Text("View Deals", style: TextStyle(fontSize: 18)),
                 ),
               ],
+            ),
+            SizedBox(height: 10),
+
+            // 🔹 "Book Now" Button
+            Center(
+              child: ElevatedButton(
+                onPressed: () => _saveBookingToNodeJS(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                ),
+                child: Text("Book Now", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
             ),
           ],
         ),

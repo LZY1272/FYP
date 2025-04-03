@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'destinationsDetails.dart';
 import 'experienceDetails.dart';
 import 'dart:convert';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class homePage extends StatefulWidget {
   final String userId;
@@ -14,6 +15,8 @@ class homePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<homePage> {
+  int _currentIndex = 0; // Ensure this is inside the class
+
   final String geoDbApiKey =
       "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285";
   final String wikiApiUrl = "https://www.wikidata.org/wiki/Special:EntityData/";
@@ -22,11 +25,11 @@ class _HomePageState extends State<homePage> {
   List<dynamic> topDestinations = [];
 
   final List<Map<String, String>> famousDestinations = [
-    {"city": "Paris", "countryCode": "FR", "wikiDataId": "Q90"},
+    {"city": "Jakarta", "countryCode": "IN", "wikiDataId": "Q3630"},
     {"city": "Tokyo", "countryCode": "JP", "wikiDataId": "Q1490"},
-    {"city": "New York", "countryCode": "US", "wikiDataId": "Q60"},
-    {"city": "London", "countryCode": "GB", "wikiDataId": "Q84"},
-    {"city": "Rome", "countryCode": "IT", "wikiDataId": "Q220"},
+    {"city": "Dubai", "countryCode": "UAE", "wikiDataId": "Q612"},
+    {"city": "Sydney", "countryCode": "AUS", "wikiDataId": "Q3130"},
+    {"city": "Shanghai", "countryCode": "CN", "wikiDataId": "Q8686"},
   ];
 
   @override
@@ -242,14 +245,9 @@ class _HomePageState extends State<homePage> {
               ),
             ),
             _buildDrawerItem(context, "Accommodations", "/accommodations"),
-            _buildDrawerItem(context, "Expense Summary", "/expenseSummary"),
             _buildDrawerItem(context, "Chatbot Rating", "/chatbotRating"),
             _buildDrawerItem(context, "Upcoming Bookings", "/upcomingBookings"),
-            _buildDrawerItem(
-              context,
-              "Booking Confirmation",
-              "/bookingConfirmation",
-            ),
+            _buildDrawerItem(context, "Booking Confirmation", "/bookingConfirmation"),
           ],
         ),
       ),
@@ -280,41 +278,6 @@ class _HomePageState extends State<homePage> {
               ),
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, '/home', arguments: widget.userId);
-              break;
-            case 1:
-              Navigator.pushNamed(
-                context,
-                '/itinerary',
-                arguments: widget.userId,
-              );
-              break;
-            case 2:
-              Navigator.pushNamed(context, '/chatbot');
-              break;
-            case 3:
-              Navigator.pushNamed(
-                context,
-                '/profile',
-                arguments: widget.userId,
-              );
-              break;
-          }
-        },
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: "Itinerary"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chatbot"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );

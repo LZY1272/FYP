@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fyp/screens/currentUser.dart';
+import 'package:fyp/yy_fyp/salomonBottomBar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -50,11 +52,12 @@ class _LoginPageState extends State<LoginPage> {
         }
 
         print("✅ Login Successful, User ID: $userId");
+        Currentuser.setUserId(userId);
 
         // Navigate to homePage with userId
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => homePage(userId: userId)),
+          MaterialPageRoute(builder: (context) => salomonBottomBar(userId: userId)),
         );
       } else {
         print('❌ Login failed: Invalid credentials or server issue.');

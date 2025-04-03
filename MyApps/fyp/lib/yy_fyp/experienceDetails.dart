@@ -17,7 +17,7 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
   String imageUrl = "https://via.placeholder.com/150"; // Default image
   bool isLoading = true;
   String errorMessage = "";
-  final String apiKey = "5ae2e3f221c38a28845f05b61e71a6719cee59a2f24d1b01fe74b4ef"; // Replace with a valid API key
+  final String apiKey = "5ae2e3f221c38a28845f05b61e71a6719cee59a2f24d1b01fe74b4ef";
 
   @override
   void initState() {
@@ -25,7 +25,6 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
     fetchExperienceData(widget.experienceName);
   }
 
-  // Fetch experience details using OpenTripMap API (Autosuggest)
   Future<void> fetchExperienceData(String experienceName) async {
     final String encodedName = Uri.encodeComponent(experienceName);
     final Uri searchUrl = Uri.parse(
@@ -33,15 +32,12 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
 
     try {
       final response = await http.get(searchUrl);
-      print("🔹 API Request URL: $searchUrl");
-      print("🔹 Response Code: ${response.statusCode}");
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data["features"] != null && data["features"].isNotEmpty) {
           var malaysiaExperience = data["features"].firstWhere(
             (exp) => exp["properties"]["country"] == "Malaysia",
-            orElse: () => data["features"].first, // Default to first result if no Malaysia match
+            orElse: () => data["features"].first,
           );
 
           final String xid = malaysiaExperience["properties"]["xid"];
@@ -59,7 +55,6 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
         });
       }
     } catch (e) {
-      print("❌ Exception: $e");
       setState(() {
         errorMessage = "Error fetching experience data.";
         isLoading = false;
@@ -67,25 +62,19 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
     }
   }
 
-  // Fetch full experience details using xid
   Future<void> fetchExperienceDetails(String xid) async {
     final Uri detailsUrl = Uri.parse(
         "https://api.opentripmap.com/0.1/en/places/xid/$xid?apikey=$apiKey");
 
     try {
       final response = await http.get(detailsUrl);
-      print("🔹 Fetch Details URL: $detailsUrl");
-      print("🔹 Response Code: ${response.statusCode}");
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         setState(() {
           experienceData = data;
           isLoading = false;
         });
 
-        // Fetch image from Wikidata if available
         if (data["wikidata"] != null) {
           fetchExperienceImage(data["wikidata"]);
         }
@@ -96,7 +85,6 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
         });
       }
     } catch (e) {
-      print("❌ Exception: $e");
       setState(() {
         errorMessage = "Error fetching experience details.";
         isLoading = false;
@@ -104,7 +92,6 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
     }
   }
 
-  // Fetch experience image from Wikidata
   Future<void> fetchExperienceImage(String wikiDataId) async {
     final url = Uri.parse("https://www.wikidata.org/wiki/Special:EntityData/$wikiDataId.json");
 
@@ -122,8 +109,6 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
             setState(() {
               imageUrl = encodedImageUrl;
             });
-
-            print("✅ Image Loaded: $imageUrl"); // Debugging
           }
         }
       }
@@ -132,7 +117,6 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
     }
   }
 
-  // Open Google Maps with full name and coordinates
   void _openGoogleMaps() async {
     if (experienceData == null) return;
 
@@ -142,71 +126,125 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
 
     if (await canLaunch(mapsUrl)) {
       await launch(mapsUrl);
-    } else {
-      print("❌ Could not open Google Maps");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(experienceData?["name"] ?? widget.experienceName, overflow: TextOverflow.ellipsis),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage, style: TextStyle(color: Colors.red, fontSize: 18)))
-              : SingleChildScrollView(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Display Image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(imageUrl, height: 250, width: double.infinity, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
-                          return Image.network("https://via.placeholder.com/150", height: 250, width: double.infinity, fit: BoxFit.cover);
-                        }),
+      body: Stack(
+        children: [
+          // Full-Screen Gradient Background
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.lightBlue.shade200, Colors.white],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+
+          // Main Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Custom Back Button
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.blue.shade700.withOpacity(0.8),
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      SizedBox(height: 20),
-
-                      // Experience Name
-                      Text(
-                        experienceData?["name"] ?? "Unknown",
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 5),
-
-                      // Country
-                      _buildDetailRow("Country", experienceData?["address"]["country"] ?? "Unknown"),
-
-                      // Latitude & Longitude
-                      _buildDetailRow("Latitude", experienceData?["point"]["lat"]?.toString() ?? "N/A"),
-                      _buildDetailRow("Longitude", experienceData?["point"]["lon"]?.toString() ?? "N/A"),
-
-                      SizedBox(height: 20),
-
-                      // Buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _openGoogleMaps,
-                            icon: Icon(Icons.map),
-                            label: Text("Open in Maps"),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
                 ),
+
+                SizedBox(height: 10),
+
+                // Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    imageUrl,
+                    height: 250,
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 250,
+                        width: double.infinity,
+                        color: Colors.grey.shade300,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.network(
+                        "https://via.placeholder.com/150",
+                        height: 250,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                // Title Centered
+                Text(
+                  experienceData?["name"] ?? widget.experienceName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                // Details
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDetailRow("Country", experienceData?["address"]["country"] ?? "Unknown"),
+                        _buildDetailRow("Latitude", experienceData?["point"]["lat"]?.toString() ?? "N/A"),
+                        _buildDetailRow("Longitude", experienceData?["point"]["lon"]?.toString() ?? "N/A"),
+
+                        SizedBox(height: 20),
+
+                        // Open in Maps Button
+                        Center(
+                          child: ElevatedButton.icon(
+                            onPressed: _openGoogleMaps,
+                            icon: Icon(Icons.map, color: Colors.white),
+                            label: Text("Open in Maps"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade700,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -216,8 +254,8 @@ class _ExperienceDetailsScreenState extends State<experienceDetailsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-          Flexible(child: Text(value, overflow: TextOverflow.ellipsis)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade700)),
+          Flexible(child: Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900), overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
