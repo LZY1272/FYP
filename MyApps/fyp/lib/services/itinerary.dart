@@ -29,12 +29,13 @@ class ItineraryGenerator {
 
     print("✅ Top Attractions found!");
 
-    // Randomly select one attraction per day without duplicates
+    // Shuffle and take unique attractions for each day
     topAttractions.shuffle();
     List<Map<String, dynamic>> selectedAttractions =
         topAttractions.take(numberOfDays).toList();
 
     List<List<Map<String, dynamic>>> itinerary = [];
+    Set<String> globalAddedPlaces = {}; // Track all added places globally
 
     for (var attraction in selectedAttractions) {
       double lat = attraction["latitude"];
@@ -43,12 +44,12 @@ class ItineraryGenerator {
       print(
         "\n🔍 Fetching nearby food and fun places for: ${attraction['name']}...",
       );
+
       List<Map<String, dynamic>>? nearbyRestaurants =
           await NearbyAPI.searchNearby(lat, lng, "restaurant");
       List<Map<String, dynamic>>? nearbyFunPlaces =
           await NearbyAPI.searchNearby(lat, lng, "tourist_attraction");
 
-      // ✅ Ensure fallback options in case no places are found
       if (nearbyRestaurants == null) nearbyRestaurants = [];
       if (nearbyFunPlaces == null) nearbyFunPlaces = [];
 
@@ -57,7 +58,7 @@ class ItineraryGenerator {
         continue;
       }
 
-      // Sort by rating
+      // Sort places by rating
       nearbyRestaurants.sort(
         (a, b) => (b['rating'] ?? 0).compareTo(a['rating'] ?? 0),
       );
@@ -66,28 +67,31 @@ class ItineraryGenerator {
       );
 
       List<Map<String, dynamic>> dayPlan = [];
-      Set<String> addedPlaces = {};
-      int foodIndex = 0;
-      int funIndex = 0;
+      Set<String> dailyAddedPlaces = {}; // Track places for each day
+      int foodIndex = 0, funIndex = 0;
 
       for (int i = 0; i < TIMESLOTS_PER_DAY; i++) {
         if (i % 2 == 0) {
-          // Even index = Eat (Food)
+          // Eat
           while (foodIndex < nearbyRestaurants.length) {
-            if (!addedPlaces.contains(nearbyRestaurants[foodIndex]['name'])) {
+            String placeName = nearbyRestaurants[foodIndex]['name'];
+            if (!globalAddedPlaces.contains(placeName)) {
               dayPlan.add(nearbyRestaurants[foodIndex]);
-              addedPlaces.add(nearbyRestaurants[foodIndex]['name']);
+              globalAddedPlaces.add(placeName);
+              dailyAddedPlaces.add(placeName);
               foodIndex++;
               break;
             }
             foodIndex++;
           }
         } else {
-          // Odd index = Fun (Tourist Attraction)
+          // Fun
           while (funIndex < nearbyFunPlaces.length) {
-            if (!addedPlaces.contains(nearbyFunPlaces[funIndex]['name'])) {
+            String placeName = nearbyFunPlaces[funIndex]['name'];
+            if (!globalAddedPlaces.contains(placeName)) {
               dayPlan.add(nearbyFunPlaces[funIndex]);
-              addedPlaces.add(nearbyFunPlaces[funIndex]['name']);
+              globalAddedPlaces.add(placeName);
+              dailyAddedPlaces.add(placeName);
               funIndex++;
               break;
             }
@@ -95,6 +99,23 @@ class ItineraryGenerator {
           }
         }
       }
+
+      // Backup strategy: If not enough places, allow slightly lower-rated ones
+      if (dayPlan.length < TIMESLOTS_PER_DAY) {
+        for (var place in nearbyRestaurants) {
+          if (!dailyAddedPlaces.contains(place['name'])) {
+            dayPlan.add(place);
+            if (dayPlan.length == TIMESLOTS_PER_DAY) break;
+          }
+        }
+        for (var place in nearbyFunPlaces) {
+          if (!dailyAddedPlaces.contains(place['name'])) {
+            dayPlan.add(place);
+            if (dayPlan.length == TIMESLOTS_PER_DAY) break;
+          }
+        }
+      }
+
       itinerary.add(dayPlan);
     }
 

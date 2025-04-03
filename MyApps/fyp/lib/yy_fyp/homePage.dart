@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'destinationsDetails.dart';
 import 'experienceDetails.dart';
 import 'dart:convert';
+import '../services/recommendation_service.dart';
 
 class homePage extends StatefulWidget {
   final String userId;
@@ -18,8 +19,11 @@ class _HomePageState extends State<homePage> {
       "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285";
   final String wikiApiUrl = "https://www.wikidata.org/wiki/Special:EntityData/";
 
+  bool isLoading = true;
   List<dynamic> topExperiences = [];
   List<dynamic> topDestinations = [];
+  final RecommendationService recommendationService = RecommendationService();
+  List<String> destinations = [];
 
   final List<Map<String, String>> famousDestinations = [
     {"city": "Paris", "countryCode": "FR", "wikiDataId": "Q90"},
@@ -36,6 +40,23 @@ class _HomePageState extends State<homePage> {
 
     fetchTopExperiences();
     fetchTopDestinations();
+    _loadRecommendations();
+  }
+
+  void _loadRecommendations() async {
+    print("Fetching recommendations for userId: ${widget.userId}"); // Debug
+
+    List<String> fetchedDestinations = await recommendationService
+        .fetchRecommendations(widget.userId);
+
+    print("API Response (Raw): $fetchedDestinations"); // Debug
+
+    setState(() {
+      destinations = fetchedDestinations;
+      isLoading = false;
+    });
+
+    print("Updated destinations list: $destinations"); // Debug
   }
 
   Future<void> fetchTopExperiences() async {
@@ -276,6 +297,7 @@ class _HomePageState extends State<homePage> {
                   _buildExperienceList(topExperiences),
                   _buildSectionTitle("Top destinations for holiday", context),
                   _buildDestinationList(topDestinations, context),
+                  _buildRecommendedForYou(), // Add this section
                 ],
               ),
             ),
@@ -453,6 +475,142 @@ class _HomePageState extends State<homePage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRecommendedForYou() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Recommended for You",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Future enhancement: Open a dedicated recommendations page
+                },
+                child: Text("See All"),
+              ),
+            ],
+          ),
+        ),
+        isLoading
+            ? Center(
+              child: CircularProgressIndicator(),
+            ) // Show loader while loading
+            : destinations.isEmpty
+            ? Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Text(
+                "No recommendations available. Try exploring new places!",
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
+            : SizedBox(
+              height: 180, // Adjust height for proper display
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: destinations.length,
+                itemBuilder: (context, index) {
+                  final destination = destinations[index];
+                  return FutureBuilder<String>(
+                    future: fetchCityImageDestination(destination),
+                    builder: (context, snapshot) {
+                      String imageUrl =
+                          snapshot.data ??
+                          "https://via.placeholder.com/150"; // Default image
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => destinationDetailsScreen(
+                                    cityName: destination,
+                                  ),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 16),
+                          child: Container(
+                            width: 140,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 5,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    imageUrl,
+                                    width: 140,
+                                    height: 180,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Image.network(
+                                        "https://via.placeholder.com/150",
+                                        width: 140,
+                                        height: 180,
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.vertical(
+                                        bottom: Radius.circular(10),
+                                      ),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.black.withOpacity(0),
+                                          Colors.black.withOpacity(0.7),
+                                        ],
+                                      ),
+                                    ),
+                                    child: Text(
+                                      destination,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+      ],
     );
   }
 }

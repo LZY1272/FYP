@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:local_auth/local_auth.dart'; // Import for biometric authentication
 import 'saved_itinerary.dart'; // Import Itinerary screen
+import 'review_screen.dart';
+import 'user_preferences.dart'; // Import the UserPreferencesPage
 
 class ProfilePage extends StatefulWidget {
   final String userId;
@@ -14,7 +16,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String userName = "Loading...";
+  String userName = ""; // Initially empty, will be replaced with email
   String profilePic = "assets/profile_placeholder.png"; // Default image
   late Future<List<dynamic>> itineraries;
   final LocalAuthentication _auth = LocalAuthentication(); // LocalAuth instance
@@ -26,20 +28,46 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _fetchUserData() async {
-    var db = await mongo.Db.create(
-      "mongodb+srv://LZY1272:Ling_1272@cluster0.pqdov.mongodb.net",
-    );
-    await db.open();
-    var collection = db.collection("users");
+    try {
+      var db = await mongo.Db.create(
+        "mongodb+srv://LZY1272:Ling_1272@cluster0.pqdov.mongodb.net",
+      );
+      await db.open();
+      var collection = db.collection("users");
 
-    var user = await collection.findOne(mongo.where.eq("_id", widget.userId));
-    if (user != null) {
+      // Check if the userId is an ObjectId (MongoDB default) or String
+      var user;
+      if (widget.userId.length == 24) {
+        // Assume it's an ObjectId if length is 24 (Mongo default _id)
+        user = await collection.findOne(
+          mongo.where.eq("_id", mongo.ObjectId.fromHexString(widget.userId)),
+        );
+      } else {
+        // Otherwise, it's treated as a String userId in your collection
+        user = await collection.findOne(
+          mongo.where.eq("userId", widget.userId),
+        );
+      }
+
+      if (user != null) {
+        setState(() {
+          userName =
+              user["email"] ??
+              "Unknown Email"; // Fetch email from the 'email' field
+          profilePic = user["profilePic"] ?? "assets/profile_placeholder.png";
+        });
+      } else {
+        setState(() {
+          userName = "No user found"; // In case no user data is found
+        });
+      }
+      await db.close();
+    } catch (e) {
+      print("Error fetching user data: $e");
       setState(() {
-        userName = user["name"] ?? "Unknown User";
-        profilePic = user["profilePic"] ?? "assets/profile_placeholder.png";
+        userName = "Error loading data"; // Error handling
       });
     }
-    await db.close();
   }
 
   Future<void> _logout() async {
@@ -98,7 +126,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  userName, // Display actual user name
+                  userName.isEmpty
+                      ? "Loading..."
+                      : userName, // Display email or loading text
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -139,10 +169,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   _authenticateAndNavigate(); // Authenticate before navigating
                 }),
                 _buildProfileOption(Icons.rate_review, "Reviews", () {
-                  // TODO: Navigate to Reviews
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReviewScreen(userId: widget.userId),
+                    ),
+                  );
                 }),
                 _buildProfileOption(Icons.settings, "Settings", () {
-                  // TODO: Navigate to Settings
+                  // Navigate to UserPreferencesPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) =>
+                              UserPreferencesPage(userId: widget.userId),
+                    ),
+                  );
                 }),
               ],
             ),

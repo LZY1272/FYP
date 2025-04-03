@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
+<key>NSAppTransportSecurity</key>
 <dict>
+	<key>NSAllowsArbitraryLoads</key>
 	<key>NSFaceIDUsageDescription</key>
     <string>Why is my app authenticating using face id? </string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to display the map</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

@@ -98,7 +98,8 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
 
   Future<String?> _fetchFromNominatim(String place) async {
     final encodedPlace = Uri.encodeComponent(place);
-    final url = 'https://nominatim.openstreetmap.org/search?format=json&q=$encodedPlace';
+    final url =
+        'https://nominatim.openstreetmap.org/search?format=json&q=$encodedPlace';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -118,70 +119,104 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Recommended Routes")),
-      body: isDestinationLoaded
-          ? FutureBuilder<List<Map<String, dynamic>>>(
-              future: _fetchRoutes(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No routes found or error fetching data"));
-                } else {
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      final route = snapshot.data![index];
+      body:
+          isDestinationLoaded
+              ? FutureBuilder<List<Map<String, dynamic>>>(
+                future: _fetchRoutes(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError ||
+                      snapshot.data == null ||
+                      snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text("No routes found or error fetching data"),
+                    );
+                  } else {
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final route = snapshot.data![index];
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: index == 0 ? Colors.blue.shade500 : Colors.blue.shade300,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Route ${index + 1}: ${(route['time'] / 60000).toStringAsFixed(1)} min (${(route['distance'] / 1000).toStringAsFixed(2)} km)",
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                  ),
-                                  Text(
-                                    index == 0 ? "Fastest route" : "Alternative route",
-                                    style: TextStyle(fontSize: 14, color: Colors.white),
-                                  ),
-                                ],
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                index == 0
+                                    ? Colors.blue.shade500
+                                    : Colors.blue.shade300,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Route ${index + 1}: ${(route['time'] / 60000).toStringAsFixed(1)} min (${(route['distance'] / 1000).toStringAsFixed(2)} km)",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      index == 0
+                                          ? "Fastest route"
+                                          : "Alternative route",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
+                              ElevatedButton(
+                                onPressed: () {
                                   try {
                                     print("🔍 Full Route Data: $route");
 
                                     // Extract and decode the polyline
-                                    String encodedPolyline = route['points']; 
-                                    print("🔍 Decoding polyline: $encodedPolyline");
+                                    String encodedPolyline = route['points'];
+                                    print(
+                                      "🔍 Decoding polyline: $encodedPolyline",
+                                    );
 
                                     // ✅ Corrected: Use `PointLatLng`
-                                    PolylinePoints polylinePoints = PolylinePoints();
-                                    List<PointLatLng> decodedPoints = polylinePoints.decodePolyline(encodedPolyline);
+                                    PolylinePoints polylinePoints =
+                                        PolylinePoints();
+                                    List<PointLatLng> decodedPoints =
+                                        polylinePoints.decodePolyline(
+                                          encodedPolyline,
+                                        );
 
                                     // ✅ Convert to List<LatLng>
-                                    List<LatLng> routePoints = decodedPoints.map(
-                                      (point) => LatLng(point.latitude, point.longitude),
-                                    ).toList();
+                                    List<LatLng> routePoints =
+                                        decodedPoints
+                                            .map(
+                                              (point) => LatLng(
+                                                point.latitude,
+                                                point.longitude,
+                                              ),
+                                            )
+                                            .toList();
 
-                                    print("✅ Decoded Route Points: $routePoints");
+                                    print(
+                                      "✅ Decoded Route Points: $routePoints",
+                                    );
 
                                     // Navigate to `viewRoutePage` with decoded coordinates
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => viewRoutePage(routePoints: routePoints),
+                                        builder:
+                                            (context) => viewRoutePage(
+                                              routePoints: routePoints,
+                                            ),
                                       ),
                                     );
                                   } catch (e, stacktrace) {
@@ -189,17 +224,17 @@ class _RecommendedRoutesPageState extends State<recommendedRoutesPage> {
                                     print("🔍 Stacktrace: $stacktrace");
                                   }
                                 },
-                              child: const Text("View"),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-              },
-            )
-          : const Center(child: CircularProgressIndicator()),
+                                child: const Text("View"),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              )
+              : const Center(child: CircularProgressIndicator()),
     );
   }
 }

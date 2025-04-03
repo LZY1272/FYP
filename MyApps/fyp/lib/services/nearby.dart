@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class NearbyAPI {
   static const String _baseUrl = 'https://maps-data.p.rapidapi.com/nearby.php';
   static const Map<String, String> _headers = {
-    'x-rapidapi-key': '68415b276emsh893ba9ffad1300ap162c78jsn7567600b8260',
+    'x-rapidapi-key': 'b999e16911msh79695100e36947fp1e57b7jsn5df6901a934f',
     'x-rapidapi-host': 'maps-data.p.rapidapi.com',
   };
 

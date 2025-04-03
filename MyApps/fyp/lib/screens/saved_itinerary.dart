@@ -38,7 +38,7 @@ class _SavedItineraryScreenState extends State<SavedItineraryScreen> {
   // Function to delete itinerary
   Future<void> deleteItinerary(String itineraryId) async {
     final url =
-        'http://172.22.7.171:3000/deleteItinerary'; // Your delete endpoint URL
+        'http://172.20.10.3:3000/deleteItinerary'; // Your delete endpoint URL
     final response = await http.delete(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
@@ -67,8 +67,9 @@ class _SavedItineraryScreenState extends State<SavedItineraryScreen> {
     String itineraryId,
     Map<String, dynamic> updatedData,
   ) async {
+    final url = 'http://172.20.10.3:3000/updateItinerary';
     final response = await http.put(
-      Uri.parse(updateItinerary),
+      Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'id': itineraryId, 'updatedData': updatedData}),
     );
@@ -122,17 +123,22 @@ class _SavedItineraryScreenState extends State<SavedItineraryScreen> {
                 subtitle: Text('Start Date: ${itinerary['startDate']}'),
                 trailing: Icon(Icons.arrow_forward_ios),
                 onTap: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder:
-                  //         (context) => EditItineraryScreen(
-                  //           itineraryId:
-                  //               itinerary['_id'], // Make sure _id is passed as the itinerary ID
-                  //           initialData: itinerary, // Pass the itinerary data
-                  //         ),
-                  //   ),
-                  // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => EditItineraryScreen(
+                            itineraryId: itinerary['_id'],
+                            initialData:
+                                itinerary, // Pass the whole itinerary map
+                            onUpdate: () {
+                              setState(() {
+                                itineraries = fetchItineraries(widget.userId);
+                              });
+                            },
+                          ),
+                    ),
+                  );
                 },
                 onLongPress: () {
                   // Show a bottom sheet or dialog for edit and delete options

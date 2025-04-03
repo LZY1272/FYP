@@ -28,7 +28,9 @@ class viewRoutePage extends StatelessWidget {
       body: FlutterMap(
         options: MapOptions(
           bounds: bounds, // ✅ Fit all route points in view
-          boundsOptions: FitBoundsOptions(padding: EdgeInsets.all(50)), // ✅ Padding
+          boundsOptions: FitBoundsOptions(
+            padding: EdgeInsets.all(50),
+          ), // ✅ Padding
           interactiveFlags: InteractiveFlag.all,
         ),
         children: [
@@ -51,28 +53,23 @@ class viewRoutePage extends StatelessWidget {
                 point: startPoint,
                 width: 40,
                 height: 40,
-                builder: (ctx) => Icon(
-                  Icons.location_on,
-                  color: Colors.green,
-                  size: 40,
-                ),
+                builder:
+                    (ctx) =>
+                        Icon(Icons.location_on, color: Colors.green, size: 40),
               ),
               Marker(
                 point: endPoint,
                 width: 40,
                 height: 40,
-                builder: (ctx) => Icon(
-                  Icons.flag,
-                  color: Colors.red,
-                  size: 40,
-                ),
+                builder: (ctx) => Icon(Icons.flag, color: Colors.red, size: 40),
               ),
             ],
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openGoogleMaps(startPoint, endPoint), // 🌍 Open Google Maps
+        onPressed:
+            () => _openGoogleMaps(startPoint, endPoint), // 🌍 Open Google Maps
         backgroundColor: Colors.blue,
         child: Icon(Icons.directions, color: Colors.white),
       ),
@@ -81,13 +78,14 @@ class viewRoutePage extends StatelessWidget {
 
   // 🌍 Function to Open Google Maps for Navigation
   void _openGoogleMaps(LatLng start, LatLng end) async {
-  final Uri url = Uri.parse(
-      "https://www.google.com/maps/dir/?api=1&origin=${start.latitude},${start.longitude}&destination=${end.latitude},${end.longitude}&travelmode=driving");
+    final Uri url = Uri.parse(
+      "https://www.google.com/maps/dir/?api=1&origin=${start.latitude},${start.longitude}&destination=${end.latitude},${end.longitude}&travelmode=driving",
+    );
 
-  if (await canLaunchUrl(url)) {
-    await launchUrl(url, mode: LaunchMode.externalApplication);
-  } else {
-    print("❌ Could not open Google Maps");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      print("❌ Could not open Google Maps");
+    }
   }
-}
 }

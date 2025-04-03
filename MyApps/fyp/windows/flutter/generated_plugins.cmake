@@ -4,7 +4,9 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
+  isar_flutter_libs
   local_auth_windows
+  permission_handler_windows
   url_launcher_windows
 )
 
