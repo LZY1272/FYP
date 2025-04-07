@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fyp/yy_fyp/homePage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart'; // For date formatting
 import 'accommodationList.dart';
 import 'topHotels.dart'; // ✅ Import Top Hotels section
-import 'allTopHotels.dart'; // ✅ Import See All Hotels page
 import 'package:shared_preferences/shared_preferences.dart';
 
 class accommodationsPage extends StatefulWidget {
@@ -37,22 +35,26 @@ class _AccommodationsPageState extends State<accommodationsPage> {
 
     final String apiUrl =
         "https://booking-com.p.rapidapi.com/v1/hotels/locations?name=$query&locale=en-gb";
-    
+
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {
-          "X-RapidAPI-Key": "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285",  // 🔹 Replace with your API key
-          "X-RapidAPI-Host": "booking-com.p.rapidapi.com"
+          "X-RapidAPI-Key":
+              "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285", // 🔹 Replace with your API key
+          "X-RapidAPI-Host": "booking-com.p.rapidapi.com",
         },
       );
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         setState(() {
-          suggestions = data
-              .map<String>((item) => item["name"].toString()) // Extract city names
-              .toList();
+          suggestions =
+              data
+                  .map<String>(
+                    (item) => item["name"].toString(),
+                  ) // Extract city names
+                  .toList();
           isLoading = false;
         });
       } else {
@@ -67,20 +69,26 @@ class _AccommodationsPageState extends State<accommodationsPage> {
   Future<List<Map<String, dynamic>>> fetchHotels(String destination) async {
     if (checkInDate == null || checkOutDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please select check-in and check-out dates"))
+        SnackBar(content: Text("Please select check-in and check-out dates")),
       );
       return [];
     }
 
-    final String formattedCheckIn = DateFormat('yyyy-MM-dd').format(checkInDate!);
-    final String formattedCheckOut = DateFormat('yyyy-MM-dd').format(checkOutDate!);
+    final String formattedCheckIn = DateFormat(
+      'yyyy-MM-dd',
+    ).format(checkInDate!);
+    final String formattedCheckOut = DateFormat(
+      'yyyy-MM-dd',
+    ).format(checkOutDate!);
 
     final String apiUrl =
-        "http://10.0.2.2:8000/hotels?destination=$destination&checkin=$formattedCheckIn&checkout=$formattedCheckOut&guests=$selectedGuests&rooms=$selectedBeds";
+        "http://172.20.10.3:8000/hotels?destination=$destination&checkin=$formattedCheckIn&checkout=$formattedCheckOut&guests=$selectedGuests&rooms=$selectedBeds";
 
     try {
       print("🔍 Fetching hotels from backend: $apiUrl");
-      final response = await http.get(Uri.parse(apiUrl)).timeout(Duration(seconds: 20));
+      final response = await http
+          .get(Uri.parse(apiUrl))
+          .timeout(Duration(seconds: 20));
 
       print("📩 Response: ${response.body}"); // Debugging log
 
@@ -106,47 +114,54 @@ class _AccommodationsPageState extends State<accommodationsPage> {
   void findHotels() async {
     String destination = destinationController.text;
     if (destination.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please enter a destination"))
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Please enter a destination")));
       return;
     }
 
     // ✅ Store city destination in SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('selected_destination', destination);
-    print("✔️ Destination saved: $destination");  // Debugging
+    print("✔️ Destination saved: $destination"); // Debugging
 
     setState(() {
       isLoading = true;
     });
 
-    List<Map<String, dynamic>> hotels = (await fetchHotels(destination)).map((hotel) => {
-      "name": hotel["hotel_name"] ?? "No Name",
-      "price": hotel["price_breakdown"]?["gross_price"]?.toString() ?? "N/A",
-      "stars": hotel["class"] ?? 0,
-      "image": hotel["main_photo_url"] ?? "assets/no_image.png",
-      "address": hotel["address"] ?? "Unknown",
-      "contact": hotel["contact"] ?? "N/A",
-      "bookingUrl": hotel["url"] ?? "#"
-    }).toList();
-
+    List<Map<String, dynamic>> hotels =
+        (await fetchHotels(destination))
+            .map(
+              (hotel) => {
+                "name": hotel["hotel_name"] ?? "No Name",
+                "price":
+                    hotel["price_breakdown"]?["gross_price"]?.toString() ??
+                    "N/A",
+                "stars": hotel["class"] ?? 0,
+                "image": hotel["main_photo_url"] ?? "assets/no_image.png",
+                "address": hotel["address"] ?? "Unknown",
+                "contact": hotel["contact"] ?? "N/A",
+                "bookingUrl": hotel["url"] ?? "#",
+              },
+            )
+            .toList();
 
     setState(() {
-      
       isLoading = false;
     });
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => accommodationList(
-          destination: destination,
-          selectedDateRange: "${DateFormat('MMM dd').format(checkInDate!)} - ${DateFormat('MMM dd').format(checkOutDate!)}",
-          selectedBeds: selectedBeds,
-          selectedGuests: selectedGuests,
-          hotels: hotels, 
-        ),
+        builder:
+            (context) => accommodationList(
+              destination: destination,
+              selectedDateRange:
+                  "${DateFormat('MMM dd').format(checkInDate!)} - ${DateFormat('MMM dd').format(checkOutDate!)}",
+              selectedBeds: selectedBeds,
+              selectedGuests: selectedGuests,
+              hotels: hotels,
+            ),
       ),
     );
   }
@@ -179,37 +194,38 @@ class _AccommodationsPageState extends State<accommodationsPage> {
               link: _layerLink,
               child: Column(
                 children: [
-                TextField(
-                controller: destinationController,
-                decoration: InputDecoration(
-                  labelText: "Destination",
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: fetchDestinationSuggestions,
-              ),
-              // 🔹 Show Suggestions Dropdown
+                  TextField(
+                    controller: destinationController,
+                    decoration: InputDecoration(
+                      labelText: "Destination",
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: fetchDestinationSuggestions,
+                  ),
+                  // 🔹 Show Suggestions Dropdown
                   if (suggestions.isNotEmpty)
                     Container(
                       padding: EdgeInsets.all(8.0),
                       color: Colors.white,
                       child: Column(
-                        children: suggestions.map((suggestion) {
-                          return ListTile(
-                            title: Text(suggestion),
-                            onTap: () {
-                              destinationController.text = suggestion;
-                              setState(() {
-                                suggestions = [];
-                              });
-                            },
-                          );
-                        }).toList(),
+                        children:
+                            suggestions.map((suggestion) {
+                              return ListTile(
+                                title: Text(suggestion),
+                                onTap: () {
+                                  destinationController.text = suggestion;
+                                  setState(() {
+                                    suggestions = [];
+                                  });
+                                },
+                              );
+                            }).toList(),
                       ),
                     ),
                 ],
               ),
-            ), 
+            ),
             SizedBox(height: 12),
 
             // 🔹 Date Picker
@@ -309,19 +325,24 @@ class _AccommodationsPageState extends State<accommodationsPage> {
             isLoading
                 ? CircularProgressIndicator()
                 : ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      backgroundColor: Colors.blue,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    onPressed: findHotels,
-                    child: Text("Find Hotels", style: TextStyle(fontSize: 18, color: Colors.white)),
+                    backgroundColor: Colors.blue,
                   ),
-                  // ✅ TOP HOTELS SECTION BELOW
-              SizedBox(height: 20),
-              topHotels(destination: destinationController.text), // ✅ Display Top Hotels section here
+                  onPressed: findHotels,
+                  child: Text(
+                    "Find Hotels",
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+            // ✅ TOP HOTELS SECTION BELOW
+            SizedBox(height: 20),
+            topHotels(
+              destination: destinationController.text,
+            ), // ✅ Display Top Hotels section here
           ],
         ),
       ),

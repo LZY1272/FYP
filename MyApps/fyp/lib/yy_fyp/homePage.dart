@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'destinationsDetails.dart';
 import 'experienceDetails.dart';
 import 'dart:convert';
-import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import '../services/recommendation_service.dart';
 
 class homePage extends StatefulWidget {
@@ -16,8 +14,6 @@ class homePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<homePage> {
-  int _currentIndex = 0; // Ensure this is inside the class
-
   final String geoDbApiKey =
       "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285";
   final String wikiApiUrl = "https://www.wikidata.org/wiki/Special:EntityData/";

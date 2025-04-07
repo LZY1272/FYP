@@ -18,7 +18,7 @@ class bookingConfirmation extends StatefulWidget {
   final dynamic price;
 
   bookingConfirmation({
-    required this.hotelName, 
+    required this.hotelName,
     required this.image,
     required this.dateRange,
     required this.guests,
@@ -169,7 +169,7 @@ Future<void> _showUpcomingBookingNotification() async {
     guestsInt = 1;
     roomsInt = 1;
     priceDouble = 0.0;
-    
+
     try {
       if (widget.guests is int) {
         guestsInt = widget.guests;
@@ -178,7 +178,7 @@ Future<void> _showUpcomingBookingNotification() async {
       } else if (widget.guests is double) {
         guestsInt = widget.guests.toInt();
       }
-      
+
       if (widget.rooms is int) {
         roomsInt = widget.rooms;
       } else if (widget.rooms is String) {
@@ -186,7 +186,7 @@ Future<void> _showUpcomingBookingNotification() async {
       } else if (widget.rooms is double) {
         roomsInt = widget.rooms.toInt();
       }
-      
+
       if (widget.price is double) {
         priceDouble = widget.price;
       } else if (widget.price is int) {
@@ -221,14 +221,11 @@ Future<void> _showUpcomingBookingNotification() async {
                 widget.image,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    "assets/no_image.png",
-                    fit: BoxFit.cover,
-                  );
+                  return Image.asset("assets/no_image.png", fit: BoxFit.cover);
                 },
               ),
             ),
-            
+
             // Booking Details
             Container(
               padding: EdgeInsets.all(16),
@@ -238,13 +235,10 @@ Future<void> _showUpcomingBookingNotification() async {
                   // Hotel Name
                   Text(
                     widget.hotelName,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Booking Info Card
                   Card(
                     elevation: 4,
@@ -263,12 +257,14 @@ Future<void> _showUpcomingBookingNotification() async {
                             child: Row(
                               children: [
                                 Icon(
-                                  _isPaid ? Icons.check_circle : Icons.pending, 
-                                  color: _isPaid ? Colors.green : Colors.orange
+                                  _isPaid ? Icons.check_circle : Icons.pending,
+                                  color: _isPaid ? Colors.green : Colors.orange,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  _isPaid ? "Confirmed & Paid" : "Confirmed - Payment Pending",
+                                  _isPaid
+                                      ? "Confirmed & Paid"
+                                      : "Confirmed - Payment Pending",
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -278,23 +274,39 @@ Future<void> _showUpcomingBookingNotification() async {
                             ),
                           ),
                           SizedBox(height: 16),
-                          
+
                           // Stay dates
-                          _buildInfoRow(Icons.calendar_today, "Stay Dates", widget.dateRange),
-                          
+                          _buildInfoRow(
+                            Icons.calendar_today,
+                            "Stay Dates",
+                            widget.dateRange,
+                          ),
+
                           // Guests & Rooms
-                          _buildInfoRow(Icons.people, "Guests", "$guestsInt guest${guestsInt > 1 ? 's' : ''}"),
-                          _buildInfoRow(Icons.hotel, "Rooms", "$roomsInt room${roomsInt > 1 ? 's' : ''}"),
-                          
+                          _buildInfoRow(
+                            Icons.people,
+                            "Guests",
+                            "$guestsInt guest${guestsInt > 1 ? 's' : ''}",
+                          ),
+                          _buildInfoRow(
+                            Icons.hotel,
+                            "Rooms",
+                            "$roomsInt room${roomsInt > 1 ? 's' : ''}",
+                          ),
+
                           // Price
-                          _buildInfoRow(Icons.monetization_on, "Total Price", "RM ${priceDouble.toStringAsFixed(2)}"),
+                          _buildInfoRow(
+                            Icons.monetization_on,
+                            "Total Price",
+                            "RM ${priceDouble.toStringAsFixed(2)}",
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   // Payment Button
                   if (!_isPaid)
                     Container(
@@ -312,16 +324,18 @@ Future<void> _showUpcomingBookingNotification() async {
                         },
                       ),
                     ),
-                  
-                  if (!_isPaid)
-                    SizedBox(height: 12),
-                  
+
+                  if (!_isPaid) SizedBox(height: 12),
+
                   // Cancel Booking Button
                   Container(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       icon: Icon(Icons.cancel, color: Colors.red),
-                      label: Text("Cancel Booking", style: TextStyle(color: Colors.red)),
+                      label: Text(
+                        "Cancel Booking",
+                        style: TextStyle(color: Colors.red),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(color: Colors.red),
@@ -333,18 +347,27 @@ Future<void> _showUpcomingBookingNotification() async {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: Text("Cancel Booking"),
-                              content: Text("Are you sure you want to cancel this booking?"),
+                              content: Text(
+                                "Are you sure you want to cancel this booking?",
+                              ),
                               actions: [
                                 TextButton(
                                   child: Text("No"),
                                   onPressed: () => Navigator.of(context).pop(),
                                 ),
                                 TextButton(
-                                  child: Text("Yes", style: TextStyle(color: Colors.red)),
+                                  child: Text(
+                                    "Yes",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                                   onPressed: () {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("Cancellation feature not implemented yet")),
+                                      SnackBar(
+                                        content: Text(
+                                          "Cancellation feature not implemented yet",
+                                        ),
+                                      ),
                                     );
                                   },
                                 ),
@@ -377,18 +400,12 @@ Future<void> _showUpcomingBookingNotification() async {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
                 SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
             ),
@@ -419,13 +436,10 @@ Future<void> _showUpcomingBookingNotification() async {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   "Payment Options:",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-              
+
               // Touch & Go eWallet
               _buildPaymentOption(
                 icon: 'assets/tng_icon.png', // Add this asset or use an icon
@@ -436,7 +450,7 @@ Future<void> _showUpcomingBookingNotification() async {
                   _showTouchNGoPayment();
                 },
               ),
-              
+
               // Online Banking
               _buildPaymentOption(
                 icon: null, // Replace with online banking icon
@@ -448,7 +462,7 @@ Future<void> _showUpcomingBookingNotification() async {
                   _showOnlineBankingOptions();
                 },
               ),
-              
+
               // Credit/Debit Card
               _buildPaymentOption(
                 icon: null, // Replace with card icon
@@ -460,9 +474,9 @@ Future<void> _showUpcomingBookingNotification() async {
                   _showCardPayment();
                 },
               ),
-              
+
               Spacer(),
-              
+
               // Confirm Button
               Container(
                 width: double.infinity,
@@ -513,23 +527,26 @@ Future<void> _showUpcomingBookingNotification() async {
             Container(
               width: 40,
               height: 40,
-              child: icon != null
-                  ? Image.asset(icon, errorBuilder: (context, error, stackTrace) => Icon(Icons.payment, color: Colors.blue))
-                  : Icon(iconData ?? Icons.payment, color: Colors.blue),
+              child:
+                  icon != null
+                      ? Image.asset(
+                        icon,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                Icon(Icons.payment, color: Colors.blue),
+                      )
+                      : Icon(iconData ?? Icons.payment, color: Colors.blue),
             ),
             SizedBox(width: 16),
-            
+
             // Title
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
               ),
             ),
-            
+
             // Selection indicator
             Container(
               width: 24,
@@ -541,18 +558,19 @@ Future<void> _showUpcomingBookingNotification() async {
                   width: 2,
                 ),
               ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.teal,
+              child:
+                  isSelected
+                      ? Center(
+                        child: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.teal,
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      )
+                      : null,
             ),
           ],
         ),
@@ -561,70 +579,73 @@ Future<void> _showUpcomingBookingNotification() async {
   }
 
   Future<bool> _saveBookingToDatabase() async {
-  try {
-    // Generate a unique booking reference
-    final String bookingReference = 'BK-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(1000)}';
-    
-    final response = await http.post(
-      Uri.parse('http://10.0.2.2:3000/paid'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'hotelName': widget.hotelName,
-        'image': widget.image,
-        'dateRange': widget.dateRange,
-        'guests': guestsInt,
-        'rooms': roomsInt,
-        'price': priceDouble,
-        'userId': Currentuser.getUserId(),
-        'paymentMethod': 'Credit/Debit Card',
-        'bookingReference': bookingReference, // Add this line
-        'status': 'Confirmed', // Add status
-        'paymentDate': DateTime.now().toIso8601String(), // Add payment date
-      }),
-    );
-    
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-    
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      print('Booking saved successfully: ${responseData['data']}');
-      return true;
-    } else {
-      try {
-        final errorData = jsonDecode(response.body);
-        print('Failed to save booking: ${errorData['message']}');
-      } catch (e) {
-        print('Failed to save booking: ${response.body}');
+    try {
+      // Generate a unique booking reference
+      final String bookingReference =
+          'BK-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(1000)}';
+
+      final response = await http.post(
+        Uri.parse('http://172.20.10.3:3000/paid'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'hotelName': widget.hotelName,
+          'image': widget.image,
+          'dateRange': widget.dateRange,
+          'guests': guestsInt,
+          'rooms': roomsInt,
+          'price': priceDouble,
+          'userId': Currentuser.getUserId(),
+          'paymentMethod': 'Credit/Debit Card',
+          'bookingReference': bookingReference, // Add this line
+          'status': 'Confirmed', // Add status
+          'paymentDate': DateTime.now().toIso8601String(), // Add payment date
+        }),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        print('Booking saved successfully: ${responseData['data']}');
+        return true;
+      } else {
+        try {
+          final errorData = jsonDecode(response.body);
+          print('Failed to save booking: ${errorData['message']}');
+        } catch (e) {
+          print('Failed to save booking: ${response.body}');
+        }
+        return false;
       }
+    } catch (e) {
+      print('Error saving booking to database: $e');
       return false;
     }
-  } catch (e) {
-    print('Error saving booking to database: $e');
-    return false;
   }
-}
 
   // Biometric Authentication
   Future<void> _authenticateAndPay() async {
     final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-    
+
     if (canAuthenticateWithBiometrics) {
       try {
         final bool didAuthenticate = await _auth.authenticate(
           localizedReason: 'Please authenticate to complete payment',
           options: const AuthenticationOptions(biometricOnly: true),
         );
-        
+
         if (didAuthenticate) {
           _showFakePaymentProcessing();
         }
       } catch (e) {
         print('Authentication error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Biometric authentication failed. Try another payment method.")),
+          SnackBar(
+            content: Text(
+              "Biometric authentication failed. Try another payment method.",
+            ),
+          ),
         );
       }
     } else {
@@ -632,7 +653,7 @@ Future<void> _showUpcomingBookingNotification() async {
       _showFakePaymentProcessing();
     }
   }
-  
+
   // Touch & Go eWallet Payment
   void _showTouchNGoPayment() {
     showDialog(
@@ -653,22 +674,21 @@ Future<void> _showUpcomingBookingNotification() async {
                     color: Colors.teal[50],
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.account_balance_wallet, size: 40, color: Colors.teal),
+                  child: Icon(
+                    Icons.account_balance_wallet,
+                    size: 40,
+                    color: Colors.teal,
+                  ),
                 ),
                 SizedBox(height: 16),
                 Text(
                   "Touch & Go eWallet",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8),
                 Text(
                   "Payment Amount",
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
                 SizedBox(height: 4),
                 Text(
@@ -707,7 +727,7 @@ Future<void> _showUpcomingBookingNotification() async {
       },
     );
   }
-  
+
   // Online Banking Options
   void _showOnlineBankingOptions() {
     List<Map<String, dynamic>> banks = [
@@ -717,7 +737,7 @@ Future<void> _showUpcomingBookingNotification() async {
       {'name': 'RHB Bank', 'icon': Icons.account_balance},
       {'name': 'Bank Islam', 'icon': Icons.account_balance},
     ];
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -732,10 +752,7 @@ Future<void> _showUpcomingBookingNotification() async {
               children: [
                 Text(
                   "Select Your Bank",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 16),
                 Container(
@@ -766,7 +783,7 @@ Future<void> _showUpcomingBookingNotification() async {
       },
     );
   }
-  
+
   // Fake Bank Login
   void _showFakeBankLogin(String bankName) {
     showDialog(
@@ -783,10 +800,7 @@ Future<void> _showUpcomingBookingNotification() async {
               children: [
                 Text(
                   "$bankName Online",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 16),
                 TextField(
@@ -806,9 +820,7 @@ Future<void> _showUpcomingBookingNotification() async {
                 SizedBox(height: 20),
                 Text(
                   "Payment Amount: RM ${priceDouble.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 20),
                 Container(
@@ -838,7 +850,7 @@ Future<void> _showUpcomingBookingNotification() async {
       },
     );
   }
-  
+
   // Credit/Debit Card Payment
   void _showCardPayment() {
     showDialog(
@@ -911,9 +923,7 @@ Future<void> _showUpcomingBookingNotification() async {
                 SizedBox(height: 20),
                 Text(
                   "Payment Amount: RM ${priceDouble.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 20),
                 Container(
@@ -943,7 +953,7 @@ Future<void> _showUpcomingBookingNotification() async {
       },
     );
   }
-  
+
   // Fake Payment Processing
   void _showFakePaymentProcessing() {
     showDialog(
@@ -965,14 +975,14 @@ Future<void> _showUpcomingBookingNotification() async {
         );
       },
     );
-    
+
     // Simulate payment processing
     Future.delayed(Duration(seconds: 2), () {
       Navigator.pop(context);
       _showPaymentSuccess();
     });
   }
-  
+
   // Payment Success
   void _showPaymentSuccess() {
   showDialog(
