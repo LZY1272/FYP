@@ -5,6 +5,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:fyp/screens/currentUser.dart';
 import 'dart:math';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 
 class bookingConfirmation extends StatefulWidget {
   final String hotelName;
@@ -28,6 +31,7 @@ class bookingConfirmation extends StatefulWidget {
 }
 
 class _BookingConfirmationState extends State<bookingConfirmation> {
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   final LocalAuthentication _auth = LocalAuthentication();
   bool _isPaid = false;
 
@@ -40,7 +44,126 @@ class _BookingConfirmationState extends State<bookingConfirmation> {
   void initState() {
     super.initState();
     _convertValues();
+    _initializeNotifications().then((_) {
+    print("Notifications initialized successfully");
+  }).catchError((error) {
+    print("Failed to initialize notifications: $error");
+  });
   }
+
+  Future<void> _initializeNotifications() async {
+  tz_data.initializeTimeZones();
+  
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) {
+      // Handle notification tapped logic here if needed
+    },
+  );
+}
+
+Future<void> _scheduleUpcomingBookingNotification() async {
+  try {
+    // Parse the date range to get start date
+    final dateRangeParts = widget.dateRange.split(" - ");
+    final startDateStr = dateRangeParts[0];
+    
+    print("Date Range: ${widget.dateRange}");
+    print("Start Date String: $startDateStr");
+    
+    // Parse the start date (format "MMM dd")
+    final now = DateTime.now();
+    print("Current date and time: $now");
+    
+    // More robust date parsing
+    RegExp dateRegex = RegExp(r'(\w+)\s+(\d+)');
+    var match = dateRegex.firstMatch(startDateStr);
+    
+    if (match == null) {
+      print("Failed to parse date string: $startDateStr");
+      // Show notification anyway as a fallback
+      await _showUpcomingBookingNotification();
+      return;
+    }
+    
+    final monthStr = match.group(1);
+    final dayStr = match.group(2);
+    
+    print("Extracted month: $monthStr, day: $dayStr");
+    
+    final month = _getMonthNumber(monthStr!);
+    final day = int.parse(dayStr!);
+    
+    print("Parsed month number: $month, day: $day");
+    
+    // Create date for booking (assuming current year)
+    final bookingDate = DateTime(now.year, month, day);
+    print("Initial booking date: $bookingDate");
+    
+    // Create date-only version of now for proper comparison (without time component)
+    final nowDateOnly = DateTime(now.year, now.month, now.day);
+    
+    // If date has passed for this year, assume it's for next year
+    // Compare only date portions, not time
+    final adjustedBookingDate = bookingDate.isBefore(nowDateOnly) 
+        ? DateTime(now.year + 1, month, day)
+        : bookingDate;
+    
+    print("Adjusted booking date: $adjustedBookingDate");
+    
+    // Calculate time difference
+    final difference = adjustedBookingDate.difference(now);
+    print("Hours until booking: ${difference.inHours}");
+    
+    // Show notification immediately if booking is less than 24 hours away
+    if (difference.inHours < 24) {
+      print("Booking is less than 24 hours away, showing notification");
+      await _showUpcomingBookingNotification();
+    } else {
+      print("Booking is more than 24 hours away, no notification needed");
+    }
+  } catch (e) {
+    print("Error in scheduling notification: $e");
+    // Show notification anyway as a fallback
+    await _showUpcomingBookingNotification();
+  }
+}
+
+int _getMonthNumber(String monthAbbr) {
+  const months = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+    'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 
+    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+  };
+  return months[monthAbbr] ?? 1;
+}
+
+Future<void> _showUpcomingBookingNotification() async {
+  try {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'hotel_booking_channel',
+      'Hotel Booking Notifications',
+      channelDescription: 'Notifications for upcoming hotel bookings',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Upcoming Booking Reminder',
+      'Your stay at ${widget.hotelName} is coming up in less than 24 hours!',
+      platformChannelSpecifics,
+    );
+    print("Notification triggered successfully");
+  } catch (e) {
+    print("Error showing notification: $e");
+  }
+}
 
   void _convertValues() {
     guestsInt = 1;
@@ -881,6 +1004,9 @@ class _BookingConfirmationState extends State<bookingConfirmation> {
                       setState(() {
                         _isPaid = true;
                       });
+                      
+                      // Schedule notification for upcoming booking
+                      await _scheduleUpcomingBookingNotification();
                       
                       // Pop with result to indicate payment was successful
                       Navigator.pop(context); // Close dialog

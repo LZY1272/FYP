@@ -441,7 +441,7 @@ class _EditItineraryScreenState extends State<EditItineraryScreen> {
     });
 
     try {
-      final url = 'http://172.20.10.3:3000/updateItinerary';
+      final url = 'http://10.0.2.2:3000/updateItinerary';
 
       // Create a client with timeout settings
       final client = http.Client();

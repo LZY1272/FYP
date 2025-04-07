@@ -16,7 +16,7 @@ class _ChatScreenState extends State<chatScreen> {
   List<Map<String, String>> messages = [];
 
   Future<String> getChatbotResponse(String userMessage) async {
-    final String apiUrl = "http://10.0.2.2:8000/chat/"; 
+    final String apiUrl = "http://172.20.10.3:8000/chat/"; 
 
   try{
     var response = await http.post(

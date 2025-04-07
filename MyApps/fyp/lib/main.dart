@@ -10,6 +10,7 @@ import 'yy_fyp/accommodation.dart';
 import 'yy_fyp/salomonBottomBar.dart';
 import 'screens/travel_form.dart';
 import 'screens/profile_screen.dart';
+import 'package:fyp/yy_fyp/expensesList.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,12 @@ class MyApp extends StatelessWidget {
           return ProfilePage(userId: userId);
         },
         '/bookingConfirmation': (context) => bookingConfirmationList(),
+        '/expensesList': (context) {
+          // Safely get userId with a fallback value
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final userId = args != null ? args as String : "defaultUser";
+          return ExpensesList(userId: userId);
+        },
       },
     );
   }

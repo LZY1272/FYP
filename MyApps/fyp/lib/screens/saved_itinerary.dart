@@ -38,7 +38,7 @@ class _SavedItineraryScreenState extends State<SavedItineraryScreen> {
   // Function to delete itinerary
   Future<void> deleteItinerary(String itineraryId) async {
     final url =
-        'http://172.20.10.3:3000/deleteItinerary'; // Your delete endpoint URL
+        'http://10.0.2.2:3000/deleteItinerary'; // Your delete endpoint URL
     final response = await http.delete(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
@@ -67,7 +67,7 @@ class _SavedItineraryScreenState extends State<SavedItineraryScreen> {
     String itineraryId,
     Map<String, dynamic> updatedData,
   ) async {
-    final url = 'http://172.20.10.3:3000/updateItinerary';
+    final url = 'http://10.0.2.2:3000/updateItinerary';
     final response = await http.put(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},

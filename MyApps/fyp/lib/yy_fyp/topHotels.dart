@@ -46,7 +46,7 @@ class _TopHotelsState extends State<topHotels> {
     final response = await http.get(
       Uri.parse("$apiUrl?dest_id=$destId&dest_type=city&checkin_date=2026-06-01&checkout_date=2026-06-05&adults_number=2&room_number=1&order_by=popularity&locale=en-gb&filter_by_currency=MYR&units=metric"),
       headers: {
-        //"X-RapidAPI-Key": "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285",
+        "X-RapidAPI-Key": "99d0568adcmsh612a2ca3d0334f9p15fdf5jsndc687769b285",
         "X-RapidAPI-Host": "booking-com.p.rapidapi.com"
       },
     );

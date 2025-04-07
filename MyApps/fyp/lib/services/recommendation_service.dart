@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class RecommendationService {
   static const String baseUrl =
-      "http://172.20.10.3:8000"; // Update URL for Flask
+      "http://10.0.2.2:8000"; // Update URL for Flask
 
   Future<List<String>> fetchRecommendations(String userId) async {
     final Uri url = Uri.parse("$baseUrl/home_recommendations/$userId");

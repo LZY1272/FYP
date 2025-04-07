@@ -268,11 +268,8 @@ class _HomePageState extends State<homePage> {
             _buildDrawerItem(context, "Accommodations", "/accommodations"),
             _buildDrawerItem(context, "Chatbot Rating", "/chatbotRating"),
             _buildDrawerItem(context, "Upcoming Bookings", "/upcomingBookings"),
-            _buildDrawerItem(
-              context,
-              "Booking Confirmation",
-              "/bookingConfirmation",
-            ),
+            _buildDrawerItem(context, "Booking Confirmation", "/bookingConfirmation",),
+            _buildDrawerItem(context, "Expenses Tracker", "/expensesList",),
           ],
         ),
       ),

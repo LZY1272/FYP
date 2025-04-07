@@ -2,6 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For date formatting
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
+
+// Notification service setup
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+// Initialize notification settings
+Future<void> initNotifications() async {
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  
+  final DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings(
+    requestAlertPermission: true,
+    requestBadgePermission: true,
+    requestSoundPermission: true,
+  );
+  
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+  
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse notificationResponse) {
+      // Handle notification taps here
+    },
+  );
+  
+  // Initialize timezone data
+  tz_data.initializeTimeZones();
+}
 
 class UpcomingBookings extends StatefulWidget {
   final Map<String, dynamic> booking;
@@ -22,8 +57,141 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
     super.initState();
     // Initialize with passed booking data
     bookingDetails = widget.booking;
-    // Optionally fetch fresh details from the server
-    fetchBookingDetails();
+    // Initialize notifications
+    initNotifications().then((_) {
+      // Optionally fetch fresh details from the server
+      fetchBookingDetails().then((_) {
+        // Check if booking is within 24 hours and show notification if needed
+        checkAndShowNotification();
+      });
+    });
+  }
+
+  // Check if booking date is within 24 hours and show notification if needed
+  void checkAndShowNotification() {
+    if (bookingDetails['dateRange'] != null) {
+      try {
+        // Extract check-in date from dateRange
+        // Example format: "Apr 03 - Apr 04"
+        final String dateRange = bookingDetails['dateRange'];
+        final String checkInDateStr = dateRange.split(' - ')[0]; // "Apr 03"
+        
+        // Parse the check-in date
+        final DateFormat dateFormat = DateFormat('MMM dd');
+        DateTime checkInDate = dateFormat.parse(checkInDateStr);
+        
+        // Add current year since the date string doesn't include year
+        checkInDate = DateTime(
+          DateTime.now().year,
+          checkInDate.month,
+          checkInDate.day,
+        );
+        
+        // If the date has already passed this year, it might be for next year
+        if (checkInDate.isBefore(DateTime.now()) && 
+            checkInDate.difference(DateTime.now()).inDays < -30) {
+          checkInDate = DateTime(
+            DateTime.now().year + 1,
+            checkInDate.month,
+            checkInDate.day,
+          );
+        }
+        
+        // Check if the booking is within the next 24 hours
+        final DateTime now = DateTime.now();
+        final Duration difference = checkInDate.difference(now);
+        
+        print('Check-in date: $checkInDate');
+        print('Current time: $now');
+        print('Hours until check-in: ${difference.inHours}');
+        
+        if (difference.inHours <= 24 && difference.inHours > 0) {
+          // Booking is within 24 hours
+          showUpcomingBookingNotification(
+            bookingDetails['hotelName'] ?? 'Your Hotel',
+            'Your booking at ${bookingDetails['hotelName']} is coming up in ${difference.inHours} hours'
+          );
+        } else if (difference.inHours <= 0 && difference.inHours > -24) {
+          // Check-in is today or already started
+          showUpcomingBookingNotification(
+            bookingDetails['hotelName'] ?? 'Your Hotel',
+            'Your stay at ${bookingDetails['hotelName']} is today!'
+          );
+        }
+      } catch (e) {
+        print('Error processing date for notification: $e');
+      }
+    }
+  }
+
+  // Show notification for upcoming booking
+  Future<void> showUpcomingBookingNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'booking_channel',
+      'Booking Notifications',
+      channelDescription: 'Notifications for upcoming hotel bookings',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+      styleInformation: BigTextStyleInformation(''),
+    );
+    
+    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+        DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+    
+    // Get a unique ID for this notification based on booking ID
+    final int notificationId = bookingDetails['_id'].hashCode % 1000000;
+    
+    await flutterLocalNotificationsPlugin.show(
+      notificationId,
+      title,
+      body,
+      platformChannelSpecifics,
+    );
+  }
+
+  // Schedule a notification for a specific time
+  Future<void> scheduleBookingReminder(DateTime notificationTime, String title, String body) async {
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'booking_reminder_channel',
+      'Booking Reminders',
+      channelDescription: 'Reminders for upcoming hotel bookings',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    
+    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+        DarwinNotificationDetails();
+    
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+    
+    // Get a unique ID for this notification based on booking ID
+    final int notificationId = bookingDetails['_id'].hashCode % 1000000;
+    
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      notificationId,
+      title,
+      body,
+      tz.TZDateTime.from(notificationTime, tz.local),
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
   }
 
   Future<void> fetchBookingDetails() async {

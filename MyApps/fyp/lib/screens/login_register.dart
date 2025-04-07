@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../services/config.dart';
 import '../yy_fyp/homePage.dart';
-import 'user_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -21,12 +20,8 @@ class _LoginPageState extends State<LoginPage> {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    if (!_isValidEmail(email)) {
-      _showSnackbar("⚠️ Please enter a valid email.");
-      return;
-    }
-    if (!_isValidPassword(password)) {
-      _showSnackbar("⚠️ Password must be at least 6 characters.");
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackbar("⚠️ Please fill in all fields.");
       return;
     }
 
@@ -40,101 +35,44 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       var jsonResponse = jsonDecode(response.body);
-      print("📝 API Response: $jsonResponse");
+      print("📝 API Response: $jsonResponse"); // Debugging
 
       if (jsonResponse['status'] && jsonResponse['token'] != null) {
         String myToken = jsonResponse['token'];
+
+        // Decode token to extract userId
         Map<String, dynamic> decodedToken = JwtDecoder.decode(myToken);
-        String? userId = decodedToken['_id'];
+        String? userId =
+            decodedToken['_id']; // Ensure backend uses "_id" for user ID
 
         if (userId == null || userId.isEmpty) {
+          print("⚠️ User ID is missing in the token.");
           _showSnackbar("Login failed. User ID not found.");
           return;
         }
+
         print("✅ Login Successful, User ID: $userId");
         Currentuser.setUserId(userId);
-        // ✅ Check user preferences and navigate accordingly
-        _redirectUserBasedOnPreferences(userId);
+
+        // Navigate to homePage with userId
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => salomonBottomBar(userId: userId)),
+        );
       } else {
-        _showSnackbar("Login failed. Check your credentials.");
+        print('❌ Login failed: Invalid credentials or server issue.');
+        _showSnackbar("Login failed. Please check your credentials.");
       }
     } catch (e) {
+      print("❌ Error logging in: $e");
       _showSnackbar("Login failed. Server error.");
     }
-  }
-
-  void _redirectUserBasedOnPreferences(String userId) async {
-    bool hasPreferences = await checkUserPreferences(userId);
-
-    print("🔍 User Preferences Check: $hasPreferences"); // Debugging log
-
-    // ✅ Auto-redirect based on preference
-    if (hasPreferences) {
-      print("✅ Redirecting to HomePage...");
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => salomonBottomBar(userId: userId),
-          ),
-        );
-      }
-    } else {
-      print("🆕 Redirecting to Preferences Setup...");
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => UserPreferencesPage(userId: userId),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<bool> checkUserPreferences(String userId) async {
-    try {
-      var response = await http.get(
-        Uri.parse(getUserPreferences(userId)),
-        headers: {"Content-Type": "application/json"},
-      );
-
-      print(
-        "🔍 API Response (User Preferences): ${response.body}",
-      ); // Debugging
-
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body);
-
-        // ✅ Check if user preferences are NOT empty
-        if (jsonResponse['status'] == true && jsonResponse['data'] != null) {
-          List activityPreferences =
-              jsonResponse['data']['activityPreferences'];
-          List interestCategories = jsonResponse['data']['interestCategories'];
-
-          return activityPreferences.isNotEmpty ||
-              interestCategories.isNotEmpty;
-        }
-      }
-    } catch (e) {
-      print("❌ Error fetching user preferences: $e");
-    }
-    return false; // Default to false if there's an error
   }
 
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  bool _isValidEmail(String email) {
-    String emailPattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$';
-    return RegExp(emailPattern).hasMatch(email);
-  }
-
-  bool _isValidPassword(String password) {
-    return password.length >= 6;
   }
 
   @override
@@ -182,24 +120,15 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController passwordController = TextEditingController();
 
   void registerUser() async {
-    String name = nameController.text.trim();
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
-    if (name.isEmpty) {
-      _showSnackbar("⚠️ Name cannot be empty.");
-      return;
-    }
-    if (!_isValidEmail(email)) {
-      _showSnackbar("⚠️ Please enter a valid email.");
-      return;
-    }
-    if (!_isValidPassword(password)) {
-      _showSnackbar("⚠️ Password must be at least 6 characters.");
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackbar("⚠️ Please fill in all fields.");
       return;
     }
 
-    var regBody = {"name": name, "email": email, "password": password};
+    var regBody = {"email": email, "password": password};
 
     try {
       var response = await http.post(
@@ -218,6 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
         _showSnackbar("Registration failed. Try again.");
       }
     } catch (e) {
+      print("❌ Error registering: $e");
       _showSnackbar("Registration failed. Server error.");
     }
   }
@@ -226,15 +156,6 @@ class _RegisterPageState extends State<RegisterPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  bool _isValidEmail(String email) {
-    String emailPattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$';
-    return RegExp(emailPattern).hasMatch(email);
-  }
-
-  bool _isValidPassword(String password) {
-    return password.length >= 6;
   }
 
   @override

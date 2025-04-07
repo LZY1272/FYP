@@ -1,4 +1,4 @@
-final url = 'http://172.20.10.3:3000/';
+final url = 'http://172.22.1.87:3000/';
 
 // User Authentication
 final registration = "${url}registration";
