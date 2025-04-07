@@ -36,6 +36,9 @@ class _EditItineraryScreenState extends State<EditItineraryScreen> {
   List<String> _placeSuggestions = [];
   bool _isFetchingSuggestions = false;
   Timer? _debounce;
+  bool isSearching = false;
+  TextEditingController searchController = TextEditingController();
+  List<Map<String, dynamic>> searchResults = [];
 
   @override
   void initState() {
@@ -532,6 +535,11 @@ class _EditItineraryScreenState extends State<EditItineraryScreen> {
         elevation: 2,
         actions: [
           IconButton(
+            icon: Icon(Icons.share),
+            onPressed: shareItinerary,
+            tooltip: 'Share Itinerary',
+          ),
+          IconButton(
             icon: Icon(Icons.save),
             onPressed: _isLoading ? null : updateItinerary,
             tooltip: 'Save Itinerary',
@@ -981,6 +989,177 @@ class _EditItineraryScreenState extends State<EditItineraryScreen> {
     _debounce?.cancel();
     super.dispose();
   }
-}
 
-// Import this at the top of your file, but I'm including it here for completeness
+  void shareItinerary() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: Text('Share Itinerary'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Search users by email or username',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.search),
+                          suffixIcon:
+                              isSearching
+                                  ? Container(
+                                    height: 20,
+                                    width: 20,
+                                    padding: EdgeInsets.all(8),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : null,
+                        ),
+                        onSubmitted: (value) {
+                          _searchUsers(value, setState);
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      if (searchResults.isNotEmpty)
+                        Container(
+                          height: 200,
+                          width: double.maxFinite,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: searchResults.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                title: Text(
+                                  searchResults[index]['username'] ?? 'Unknown',
+                                ),
+                                subtitle: Text(
+                                  searchResults[index]['email'] ?? '',
+                                ),
+                                trailing: ElevatedButton(
+                                  child: Text('Invite'),
+                                  onPressed: () {
+                                    _addCollaborator(
+                                      searchResults[index]['_id'],
+                                    );
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (searchController.text.isNotEmpty) {
+                          _searchUsers(searchController.text, setState);
+                        }
+                      },
+                      child: Text('Search'),
+                    ),
+                  ],
+                ),
+          ),
+    );
+  }
+
+  Future<void> _searchUsers(String query, StateSetter setState) async {
+    if (query.isEmpty) return;
+
+    setState(() {
+      isSearching = true;
+    });
+
+    try {
+      final response = await http
+          .get(Uri.parse('http://172.20.10.3:3000/searchUsers?query=$query'))
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException('Connection timed out');
+            },
+          );
+
+      setState(() {
+        isSearching = false;
+      });
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          searchResults = List<Map<String, dynamic>>.from(data['users']);
+        });
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to search users')));
+      }
+    } catch (e) {
+      setState(() {
+        isSearching = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
+  }
+
+  Future<void> _addCollaborator(String collaboratorId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final url =
+          'http://172.20.10.3:3000/addCollaborator/${widget.itineraryId}';
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'collaboratorId': collaboratorId}),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException('Connection timed out');
+            },
+          );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['status'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Collaborator added successfully')),
+          );
+        } else {
+          throw Exception(
+            responseData['message'] ?? 'Failed to add collaborator',
+          );
+        }
+      } else {
+        throw Exception('Failed to add collaborator');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    }
+  }
+}

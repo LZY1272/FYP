@@ -16,31 +16,29 @@ class _ChatScreenState extends State<chatScreen> {
   List<Map<String, String>> messages = [];
 
   Future<String> getChatbotResponse(String userMessage) async {
-    final String apiUrl = "http://10.0.2.2:8000/chat/"; 
+    final String apiUrl = "http://172.20.10.3:8000/chat/";
 
-  try{
-    var response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({"message": userMessage}),
-    );
+    try {
+      var response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"message": userMessage}),
+      );
 
-    print("Response Status: ${response.statusCode}");
-    print("Response Body: ${response.body}");
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseData = jsonDecode(response.body);
-      return responseData["response"];
-    } else {
-      return "Error: ${response.statusCode} - ${response.body}";
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseData = jsonDecode(response.body);
+        return responseData["response"];
+      } else {
+        return "Error: ${response.statusCode} - ${response.body}";
+      }
+    } catch (e) {
+      print("Exception: $e");
+      return "Error: Failed to connect to chatbot.";
     }
-  }catch (e) {
-    print("Exception: $e");
-    return "Error: Failed to connect to chatbot.";
   }
-}
 
   void sendMessage() async {
     String userMessage = _controller.text;
@@ -71,7 +69,8 @@ class _ChatScreenState extends State<chatScreen> {
                 final message = messages[index];
                 bool isUser = message["sender"] == "user";
                 return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     padding: EdgeInsets.all(10),
@@ -81,7 +80,9 @@ class _ChatScreenState extends State<chatScreen> {
                     ),
                     child: Text(
                       message["text"]!,
-                      style: TextStyle(color: isUser ? Colors.white : Colors.black),
+                      style: TextStyle(
+                        color: isUser ? Colors.white : Colors.black,
+                      ),
                     ),
                   ),
                 );

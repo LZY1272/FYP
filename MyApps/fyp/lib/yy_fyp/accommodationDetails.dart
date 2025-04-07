@@ -17,7 +17,7 @@ class accommodationDetails extends StatelessWidget {
   final int selectedGuests;
 
   accommodationDetails({
-    required this.name, 
+    required this.name,
     required this.image,
     required this.stars,
     required this.address,
@@ -29,7 +29,7 @@ class accommodationDetails extends StatelessWidget {
   });
 
   // 🔹 Backend API URL (Replace with your actual endpoint)
-  final String saveBookingUrl = "http://10.0.2.2:3000/bookings";
+  final String saveBookingUrl = "http://172.20.10.3:3000/bookings";
 
   // 🔹 Function to save booking data to MongoDB
   Future<void> _saveBookingToNodeJS(BuildContext context) async {
@@ -55,7 +55,11 @@ class accommodationDetails extends StatelessWidget {
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Booking Successful! Please confirm your booking in 'Booking Confirmation' page.")),
+          SnackBar(
+            content: Text(
+              "Booking Successful! Please confirm your booking in 'Booking Confirmation' page.",
+            ),
+          ),
         );
       } else {
         print("❌ Failed to save booking: ${response.body}");
@@ -67,7 +71,9 @@ class accommodationDetails extends StatelessWidget {
 
   // 🔹 Function to open Booking.com link
   void _launchBookingSite() async {
-    final Uri url = Uri.parse("https://www.booking.com/searchresults.html?ss=$name");
+    final Uri url = Uri.parse(
+      "https://www.booking.com/searchresults.html?ss=$name",
+    );
     if (!await launchUrl(url)) {
       throw 'Could not open $url';
     }
@@ -82,9 +88,17 @@ class accommodationDetails extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(
+              name,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
 
-            Row(children: List.generate(stars, (index) => Icon(Icons.star, color: Colors.amber, size: 18))),
+            Row(
+              children: List.generate(
+                stars,
+                (index) => Icon(Icons.star, color: Colors.amber, size: 18),
+              ),
+            ),
             SizedBox(height: 8),
 
             Row(
@@ -100,7 +114,10 @@ class accommodationDetails extends StatelessWidget {
               children: [
                 Icon(Icons.phone, color: Colors.blue),
                 SizedBox(width: 5),
-                Text(contact, style: TextStyle(fontSize: 16, color: Colors.blue)),
+                Text(
+                  contact,
+                  style: TextStyle(fontSize: 16, color: Colors.blue),
+                ),
               ],
             ),
             SizedBox(height: 10),
@@ -113,13 +130,20 @@ class accommodationDetails extends StatelessWidget {
                 height: 200,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return Image.asset("assets/no_image.png", width: double.infinity, height: 200);
+                  return Image.asset(
+                    "assets/no_image.png",
+                    width: double.infinity,
+                    height: 200,
+                  );
                 },
               ),
             ),
             SizedBox(height: 15),
 
-            Text("View prices for your travel dates", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              "View prices for your travel dates",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 10),
 
             Container(
@@ -153,7 +177,10 @@ class accommodationDetails extends StatelessWidget {
                       children: [
                         Icon(Icons.bed, color: Colors.blue),
                         SizedBox(width: 5),
-                        Text("$selectedBeds Beds", style: TextStyle(fontSize: 16)),
+                        Text(
+                          "$selectedBeds Beds",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ],
                     ),
                   ),
@@ -171,7 +198,10 @@ class accommodationDetails extends StatelessWidget {
                       children: [
                         Icon(Icons.people, color: Colors.blue),
                         SizedBox(width: 5),
-                        Text("$selectedGuests Guests", style: TextStyle(fontSize: 16)),
+                        Text(
+                          "$selectedGuests Guests",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ],
                     ),
                   ),
@@ -180,7 +210,10 @@ class accommodationDetails extends StatelessWidget {
             ),
             SizedBox(height: 15),
 
-            Text("RM $price", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(
+              "RM $price",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 20),
 
             Row(
@@ -215,7 +248,10 @@ class accommodationDetails extends StatelessWidget {
                   backgroundColor: Colors.green,
                   padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                 ),
-                child: Text("Book Now", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text(
+                  "Book Now",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

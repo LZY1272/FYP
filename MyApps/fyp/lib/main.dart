@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fyp/yy_fyp/accommodationList.dart';
 import 'package:fyp/yy_fyp/bookingConfirmationList.dart';
 import 'package:fyp/yy_fyp/chatScreen.dart';
 import 'package:fyp/yy_fyp/chatbotRating.dart';
 import 'package:fyp/screens/login_register.dart';
 import 'package:fyp/yy_fyp/upcomingBookingsList.dart';
-import 'yy_fyp/homePage.dart';
 import 'yy_fyp/accommodation.dart';
 import 'yy_fyp/salomonBottomBar.dart';
 import 'screens/travel_form.dart';
