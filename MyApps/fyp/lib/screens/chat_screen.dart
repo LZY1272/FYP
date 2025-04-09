@@ -27,12 +27,14 @@ class ChatScreen extends StatefulWidget {
   final String itineraryId;
   final String chatId;
   final String userId;
+  final bool isOwner;
 
   const ChatScreen({
     Key? key,
     required this.itineraryId,
     required this.chatId,
     required this.userId,
+    this.isOwner = false,
   }) : super(key: key);
 
   @override
@@ -49,6 +51,88 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _fetchMessages();
+  }
+
+  Future<void> _leaveChat() async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Leave Chat'),
+            content: Text(
+              'Are you sure you want to leave this chat? You will be removed as a collaborator from this trip.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('CANCEL'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('LEAVE', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed != true) return;
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://172.20.10.3:3000/leaveChat'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'chatId': widget.chatId, 'userId': widget.userId}),
+      );
+
+      // Dismiss loading
+      Navigator.pop(context);
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200 && data['status'] == true) {
+        // Show success message
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('You have left the chat')));
+        // Navigate back to chat list
+        Navigator.pop(context);
+      } else {
+        // Handle specific error cases
+        String errorMessage = data['message'] ?? 'Failed to leave chat';
+
+        // Check if it's the "owner cannot leave" error
+        if (errorMessage.contains('owner cannot leave')) {
+          errorMessage = 'As the trip owner, you cannot leave this chat';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), duration: Duration(seconds: 3)),
+        );
+      }
+    } catch (e) {
+      // Dismiss loading if still showing
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Extract meaningful error message if possible
+      String errorMessage = e.toString();
+      if (errorMessage.contains('owner cannot leave')) {
+        errorMessage = 'As the trip owner, you cannot leave this chat';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), duration: Duration(seconds: 3)),
+      );
+    }
   }
 
   Future<void> _fetchMessages() async {
@@ -158,7 +242,34 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Trip Chat'), elevation: 1),
+      appBar: AppBar(
+        title: Text('Trip Chat'),
+        elevation: 1,
+        actions: [
+          if (!widget.isOwner)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'leave') {
+                  _leaveChat();
+                }
+              },
+              itemBuilder:
+                  (BuildContext context) => <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'leave',
+                      child: ListTile(
+                        leading: Icon(Icons.exit_to_app, color: Colors.red),
+                        title: Text(
+                          'Leave Chat',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+            ),
+        ],
+      ),
       body:
           _isLoading
               ? Center(child: CircularProgressIndicator())

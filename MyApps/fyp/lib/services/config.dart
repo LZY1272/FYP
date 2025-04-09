@@ -1,4 +1,4 @@
-final url = 'http://172.22.1.87:3000/';
+final url = 'http://172.20.10.3:3000/';
 
 // User Authentication
 final registration = "${url}registration";
@@ -31,7 +31,7 @@ String deletereview(String reviewId) {
 }
 
 // ✅ New APIs for User Preferences
-final updatePreferences = "${url}update-preferences";
+final updatePreferences = "${url}updatePreferences";
 
 String getUserPreferences(String userId) {
   return "${url}preferences/$userId";

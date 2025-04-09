@@ -2,21 +2,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class chatScreen extends StatefulWidget {
+class chatbotScreen extends StatefulWidget {
   final String userId;
 
-  const chatScreen({Key? key, required this.userId}) : super(key: key);
+  const chatbotScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<chatScreen> {
+class _ChatScreenState extends State<chatbotScreen> {
   TextEditingController _controller = TextEditingController();
   List<Map<String, String>> messages = [];
 
   Future<String> getChatbotResponse(String userMessage) async {
-    final String apiUrl = "http://10.0.2.2:8000/chat/"; 
+    final String apiUrl = "http://10.0.2.2:8000/chat/";
 
     try {
       var response = await http.post(
