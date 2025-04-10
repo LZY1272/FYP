@@ -59,7 +59,7 @@ class _bookingConfirmationListState extends State<bookingConfirmationList> {
       // Fetch the list of paid bookings for this user
       final paidResponse = await http.get(
         Uri.parse(
-          'http://172.20.10.3:3000/paid?userId=${Uri.encodeComponent(userId!)}',
+          'http://10.0.2.2:3000/paid?userId=${Uri.encodeComponent(userId!)}',
         ),
       );
 
@@ -122,7 +122,7 @@ class _bookingConfirmationListState extends State<bookingConfirmationList> {
 
       final response = await http.get(
         Uri.parse(
-          'http://172.20.10.3:3000/bookings?userId=${Uri.encodeComponent(userId!)}',
+          'http://10.0.2.2:3000/bookings?userId=${Uri.encodeComponent(userId!)}',
         ),
       );
 

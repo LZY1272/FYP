@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'homePage.dart';
-import 'chatScreen.dart';
+import 'chatbotScreen.dart';
 import '../screens/travel_form.dart';
 import '../screens/profile_screen.dart';
 
@@ -24,7 +24,7 @@ class _SalomonBottomBarWidgetState extends State<salomonBottomBar> {
     _screens = [
       homePage(userId: widget.userId),
       TravelForm(userId: widget.userId), // Itinerary
-      chatScreen(userId: widget.userId),
+      chatbotScreen(userId: widget.userId),
       ProfilePage(userId: widget.userId),
     ];
   }

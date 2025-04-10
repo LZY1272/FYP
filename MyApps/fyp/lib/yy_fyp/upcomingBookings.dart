@@ -203,7 +203,7 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
     try {
       final String bookingId = widget.booking['_id'];
       final response = await http.get(
-        Uri.parse('http://172.20.10.3:3000/paid/$bookingId'),
+        Uri.parse('http://10.0.2.2:3000/paid/$bookingId'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -560,7 +560,7 @@ class _UpcomingBookingsState extends State<UpcomingBookings> {
     try {
       final String bookingId = widget.booking['_id'];
       final response = await http.patch(
-        Uri.parse('http://172.20.10.3:3000/paid/$bookingId/status'),
+        Uri.parse('http://10.0.2.2:3000/paid/$bookingId/status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'status': 'Cancelled'}),
       );

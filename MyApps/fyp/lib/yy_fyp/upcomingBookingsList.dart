@@ -36,7 +36,7 @@ class _UpcomingBookingsListState extends State<UpcomingBookingsList> {
 
       final response = await http.get(
         Uri.parse(
-          'http://172.20.10.3:3000/paid?userId=${Uri.encodeComponent(userId!)}',
+          'http://10.0.2.2:3000/paid?userId=${Uri.encodeComponent(userId!)}',
         ),
       );
 

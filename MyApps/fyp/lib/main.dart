@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fyp/yy_fyp/bookingConfirmationList.dart';
-import 'package:fyp/yy_fyp/chatScreen.dart';
+import 'package:fyp/yy_fyp/chatbotScreen.dart';
 import 'package:fyp/yy_fyp/chatbotRating.dart';
 import 'package:fyp/screens/login_register.dart';
 import 'package:fyp/yy_fyp/upcomingBookingsList.dart';
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           // Safely get userId with a fallback value
           final args = ModalRoute.of(context)?.settings.arguments;
           final userId = args != null ? args as String : "defaultUser";
-          return chatScreen(userId: userId);
+          return chatbotScreen(userId: userId);
         },
         '/itinerary': (context) {
           // Safely get userId with a fallback value
@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
           final userId = args != null ? args as String : "defaultUser";
           return ExpensesList(userId: userId);
         },
+        '/userActivityReport': (context) => UserActivityReport(),
       },
     );
   }

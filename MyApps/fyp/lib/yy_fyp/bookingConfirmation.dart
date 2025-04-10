@@ -585,7 +585,7 @@ Future<void> _showUpcomingBookingNotification() async {
           'BK-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(1000)}';
 
       final response = await http.post(
-        Uri.parse('http://172.20.10.3:3000/paid'),
+        Uri.parse('http://10.0.2.2:3000/paid'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'hotelName': widget.hotelName,
