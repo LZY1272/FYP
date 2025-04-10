@@ -4,6 +4,7 @@ import 'homePage.dart';
 import 'chatbotScreen.dart';
 import '../screens/travel_form.dart';
 import '../screens/profile_screen.dart';
+import '../screens/chat_homepage.dart';
 
 class salomonBottomBar extends StatefulWidget {
   final String userId;
@@ -23,7 +24,17 @@ class _SalomonBottomBarWidgetState extends State<salomonBottomBar> {
     super.initState();
     _screens = [
       homePage(userId: widget.userId),
-      TravelForm(userId: widget.userId), // Itinerary
+      TravelForm(userId: widget.userId),
+      ChatListScreen(
+        userId: widget.userId,
+        baseUrl: 'http://172.20.10.3:3000',
+        onNavigateToTrips: () {
+          // When the user wants to see their trips after seeing "no shared trips"
+          setState(() {
+            _currentIndex = 0; // Switch to home/trips page
+          });
+        },
+      ),
       chatbotScreen(userId: widget.userId),
       ProfilePage(userId: widget.userId),
     ];
@@ -32,10 +43,7 @@ class _SalomonBottomBarWidgetState extends State<salomonBottomBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: SalomonBottomBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -44,10 +52,31 @@ class _SalomonBottomBarWidgetState extends State<salomonBottomBar> {
           });
         },
         items: [
-          SalomonBottomBarItem(icon: Icon(Icons.home), title: Text("Home"), selectedColor: Colors.blue),
-          SalomonBottomBarItem(icon: Icon(Icons.event), title: Text("Itinerary"), selectedColor: Colors.blue),
-          SalomonBottomBarItem(icon: Icon(Icons.chat), title: Text("Chatbot"), selectedColor: Colors.blue),
-          SalomonBottomBarItem(icon: Icon(Icons.person), title: Text("Profile"), selectedColor: Colors.blue),
+          SalomonBottomBarItem(
+            icon: Icon(Icons.home),
+            title: Text("Home"),
+            selectedColor: Colors.blue,
+          ),
+          SalomonBottomBarItem(
+            icon: Icon(Icons.event),
+            title: Text("Itinerary"),
+            selectedColor: Colors.blue,
+          ),
+          SalomonBottomBarItem(
+            icon: Icon(Icons.chat_bubble),
+            title: Text("Chats"),
+            selectedColor: Colors.blue,
+          ),
+          SalomonBottomBarItem(
+            icon: Icon(Icons.smart_toy),
+            title: Text("Chatbot"),
+            selectedColor: Colors.blue,
+          ),
+          SalomonBottomBarItem(
+            icon: Icon(Icons.person),
+            title: Text("Profile"),
+            selectedColor: Colors.blue,
+          ),
         ],
       ),
     );

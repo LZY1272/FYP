@@ -31,7 +31,7 @@ String deletereview(String reviewId) {
 }
 
 // ✅ New APIs for User Preferences
-final updatePreferences = "${url}update-preferences";
+final updatePreferences = "${url}updatePreferences";
 
 String getUserPreferences(String userId) {
   return "${url}preferences/$userId";

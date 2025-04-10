@@ -9,6 +9,7 @@ import 'yy_fyp/salomonBottomBar.dart';
 import 'screens/travel_form.dart';
 import 'screens/profile_screen.dart';
 import 'package:fyp/yy_fyp/expensesList.dart';
+import './screens/report_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

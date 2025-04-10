@@ -46,26 +46,45 @@ class _UserPreferencesPageState extends State<UserPreferencesPage> {
     };
 
     try {
+      print("Sending request to update preferences for user: ${widget.userId}");
+      print("Selected activities: $selectedActivities");
+      print("Selected interests: $selectedInterests");
+
       var response = await http.post(
         Uri.parse(updatePreferences),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
 
-      var jsonResponse = jsonDecode(response.body);
+      print("Response status code: ${response.statusCode}");
+      print("Response body: ${response.body}");
 
-      if (jsonResponse['status']) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => homePage(userId: widget.userId),
-          ),
-        );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        try {
+          var jsonResponse = jsonDecode(response.body);
+
+          if (jsonResponse['status'] == true) {
+            _showSnackbar("Preferences saved successfully!");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => homePage(userId: widget.userId),
+              ),
+            );
+          } else {
+            _showSnackbar(
+              "Failed to save preferences: ${jsonResponse['message'] ?? 'Unknown error'}",
+            );
+          }
+        } catch (e) {
+          _showSnackbar("Error parsing response: $e");
+        }
       } else {
-        _showSnackbar("Failed to save preferences.");
+        _showSnackbar("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      _showSnackbar("Error: $e");
+      print("Exception during HTTP request: $e");
+      _showSnackbar("Network error: $e");
     } finally {
       setState(() => isLoading = false);
     }
